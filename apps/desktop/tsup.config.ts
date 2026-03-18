@@ -6,5 +6,5 @@ export default defineConfig({
   external: ['electron', 'better-sqlite3'],
   clean: true,
   outDir: 'dist-electron',
-  noExternal: [/(.*)/],
+  noExternal: ['@music/core', 'music-metadata'],
 });
