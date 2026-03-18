@@ -234,30 +234,6 @@ export default function MainHeader() {
       <header className="main-header app-drag-region">
         <div className="header-info">
           <div className="header-brand no-drag" aria-label="Noctra">
-            <span className="header-brand-mark" aria-hidden="true">
-              <svg viewBox="0 0 64 64" fill="none">
-                <defs>
-                  <linearGradient id="noctraBrandGradientA" x1="13" y1="56" x2="27" y2="8" gradientUnits="userSpaceOnUse">
-                    <stop stopColor="#ff37ad" />
-                    <stop offset="0.56" stopColor="#a46cf6" />
-                    <stop offset="1" stopColor="#74d9ff" />
-                  </linearGradient>
-                  <linearGradient id="noctraBrandGradientB" x1="24" y1="16" x2="39" y2="54" gradientUnits="userSpaceOnUse">
-                    <stop stopColor="#2f48ff" />
-                    <stop offset="1" stopColor="#2639c7" />
-                  </linearGradient>
-                  <linearGradient id="noctraBrandGradientC" x1="36" y1="10" x2="56" y2="56" gradientUnits="userSpaceOnUse">
-                    <stop stopColor="#76deff" />
-                    <stop offset="0.58" stopColor="#5a3cff" />
-                    <stop offset="1" stopColor="#7fd8ff" />
-                  </linearGradient>
-                </defs>
-                <rect x="10" y="6" width="14" height="52" rx="7" fill="url(#noctraBrandGradientA)" />
-                <path d="M24 10h8l11.5 44h-8L24 10Z" fill="url(#noctraBrandGradientB)" />
-                <rect x="34" y="8" width="14" height="50" rx="7" fill="url(#noctraBrandGradientC)" />
-                <path d="M48 18c0-4.971 4.029-9 9-9h1c3.314 0 6 2.686 6 6v34c0 4.971-4.029 9-9 9h-1c-3.314 0-6-2.686-6-6V18Z" fill="url(#noctraBrandGradientC)" />
-              </svg>
-            </span>
             <span className="header-brand-text">NOCTRA</span>
           </div>
           <div className="header-clock-block no-drag">

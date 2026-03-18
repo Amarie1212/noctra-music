@@ -1276,7 +1276,7 @@ function ManageSongModal({
                 </div>
                 <div className="full">
                   <span>{t('folderLabel')}</span>
-                  <strong className="manage-song-item-val" style={{ whiteSpace: 'normal', lineBreak: 'anywhere' }}>{track.filePath}</strong>
+                  <strong className="manage-song-item-val path">{track.filePath}</strong>
                 </div>
               </div>
             </div>

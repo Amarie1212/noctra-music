@@ -769,7 +769,10 @@ useEffect(() => {
           <button className="library-action-btn secondary icon-only" onClick={() => handlePlayTracks(sortedSelectedGroupTracks)} title={t('playAll')}>
             <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor"><path d="M8 5v14l11-7z"/></svg>
           </button>
-          <button className="library-action-btn secondary" onClick={() => openPlaylistPicker(selectedGroup.title, sortedSelectedGroupTracks)}>
+          <button
+            className={`library-action-btn secondary ${libraryTab === 'folders' ? 'folder-add-playlist-btn' : ''}`}
+            onClick={() => openPlaylistPicker(selectedGroup.title, sortedSelectedGroupTracks)}
+          >
             {t('addToPlaylist')}
           </button>
         </div>
@@ -1128,8 +1131,8 @@ useEffect(() => {
             {libraryTab !== 'songs' && libraryTab !== 'playlists' && renderGroupBrowser()}
             {libraryTab === 'playlists' && renderPlaylists()}
           </div>
-          <div ref={selectionHostRef} className="library-selection-host" />
         </div>
+        <div ref={selectionHostRef} className="library-selection-host" />
       </section>
 
 
