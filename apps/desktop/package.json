@@ -30,7 +30,7 @@
       "runAfterFinish": true,
       "deleteAppDataOnUninstall": true,
       "differentialPackage": false,
-      "artifactName": "${productName} Setup.${ext}"
+      "artifactName": "${productName}-Setup.${ext}"
     }
   },
   "scripts": {
@@ -39,7 +39,7 @@
     "dev": "concurrently \"pnpm run dev:vite\" \"pnpm run dev:electron\" \"npx wait-on http://127.0.0.1:5173 && electron .\"",
     "build:electron": "tsup",
     "build:renderer": "vite build",
-    "build:bundle": "concurrently -k \"pnpm run build:electron\" \"pnpm run build:renderer\"",
+    "build:bundle": "concurrently \"pnpm run build:electron\" \"pnpm run build:renderer\"",
     "build:installer": "pnpm run build:bundle && electron-builder --publish never",
     "build": "pnpm run build:installer",
     "preview": "vite preview"
