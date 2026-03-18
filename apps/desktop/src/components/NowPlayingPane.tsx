@@ -143,46 +143,6 @@ export default function NowPlayingPane() {
             </button>
           </div>
 
-          <div className="volume-control compact">
-            <button
-              type="button"
-              className={`volume-icon-btn ${isMuted || volume === 0 ? 'muted' : ''}`}
-              onClick={toggleMute}
-              title={isMuted || volume === 0 ? 'Unmute' : 'Mute'}
-              aria-label={isMuted || volume === 0 ? 'Unmute volume' : 'Mute volume'}
-              disabled={!hasTrack}
-            >
-              <span className="volume-icon" aria-hidden="true">
-                {isMuted || volume === 0 ? (
-                  <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
-                    <polygon points="11 5 6 9 3 9 3 15 6 15 11 19 11 5"></polygon>
-                    <line x1="22" y1="9" x2="16" y2="15"></line>
-                    <line x1="16" y1="9" x2="22" y2="15"></line>
-                  </svg>
-                ) : (
-                  <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
-                    <polygon points="11 5 6 9 3 9 3 15 6 15 11 19 11 5"></polygon>
-                    <path d="M15.5 8.5a5 5 0 0 1 0 7"></path>
-                    <path d="M18.5 5.5a9 9 0 0 1 0 13"></path>
-                  </svg>
-                )}
-              </span>
-            </button>
-            <div className="volume-slider-wrapper" style={{ '--volume-width': `${effectiveVolume * 100}%` } as any}>
-              <input
-                type="range"
-                className="volume-slider"
-                min={0}
-                max={1}
-                step={0.01}
-                value={effectiveVolume}
-                onChange={e => setVolume(Number(e.target.value))}
-                disabled={!hasTrack}
-                style={{ '--progress': `${effectiveVolume * 100}%` } as any}
-              />
-            </div>
-          </div>
-
           <div className="progress-container">
             <div className="seekbar-container" style={{ '--progress-width': `${(localPos / (duration || 1)) * 100}%` } as any}>
               <input
@@ -197,9 +157,47 @@ export default function NowPlayingPane() {
                 style={{ '--progress': `${(localPos / (duration || 1)) * 100}%` } as any}
               />
             </div>
-            <div className="time-stamps">
-              <span>{formatDuration(localPos)}</span>
-              <span>{formatDuration(duration)}</span>
+            <div className="progress-meta-row">
+              <span className="progress-time-inline">{`${formatDuration(localPos)} - ${formatDuration(duration)}`}</span>
+              <div className="volume-control compact">
+                <button
+                  type="button"
+                  className={`volume-icon-btn ${isMuted || volume === 0 ? 'muted' : ''}`}
+                  onClick={toggleMute}
+                  title={isMuted || volume === 0 ? 'Unmute' : 'Mute'}
+                  aria-label={isMuted || volume === 0 ? 'Unmute volume' : 'Mute volume'}
+                  disabled={!hasTrack}
+                >
+                  <span className="volume-icon" aria-hidden="true">
+                    {isMuted || volume === 0 ? (
+                      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
+                        <polygon points="11 5 6 9 3 9 3 15 6 15 11 19 11 5"></polygon>
+                        <line x1="22" y1="9" x2="16" y2="15"></line>
+                        <line x1="16" y1="9" x2="22" y2="15"></line>
+                      </svg>
+                    ) : (
+                      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
+                        <polygon points="11 5 6 9 3 9 3 15 6 15 11 19 11 5"></polygon>
+                        <path d="M15.5 8.5a5 5 0 0 1 0 7"></path>
+                        <path d="M18.5 5.5a9 9 0 0 1 0 13"></path>
+                      </svg>
+                    )}
+                  </span>
+                </button>
+                <div className="volume-slider-wrapper" style={{ '--volume-width': `${effectiveVolume * 100}%` } as any}>
+                  <input
+                    type="range"
+                    className="volume-slider"
+                    min={0}
+                    max={1}
+                    step={0.01}
+                    value={effectiveVolume}
+                    onChange={e => setVolume(Number(e.target.value))}
+                    disabled={!hasTrack}
+                    style={{ '--progress': `${effectiveVolume * 100}%` } as any}
+                  />
+                </div>
+              </div>
             </div>
           </div>
         </div>

@@ -83,6 +83,7 @@ export default function TrackList({
   const [draggingTrackId, setDraggingTrackId] = useState<string | null>(null);
   const [dropTargetTrackId, setDropTargetTrackId] = useState<string | null>(null);
   const selectedTrackIdSet = useMemo(() => new Set(selectedTrackIds), [selectedTrackIds]);
+  const selectionToolbarTarget = selectionToolbarHost ?? (typeof document !== 'undefined' ? document.body : null);
   const listRef = useRef<HTMLDivElement | null>(null);
   const scrollContainerRef = useRef<HTMLDivElement | null>(null);
   const scrollElRef = useRef<HTMLElement | null>(null);
@@ -331,6 +332,21 @@ export default function TrackList({
     if (selectionMode) resetSelection();
   };
 
+  const handleRemoveSelected = async (trackIds: string[]) => {
+    if (!trackIds.length) return;
+    if (isPlaylistScoped) {
+      await handleRemoveFromPlaylist(trackIds);
+      return;
+    }
+
+    await Promise.all(trackIds.map(trackId => removeTrack(trackId)));
+    addToast(t('removedFromLibraryToast'));
+    setActiveModal(null);
+    setBulkRemoveConfirmOpen(false);
+    closeMenu();
+    if (selectionMode) resetSelection();
+  };
+
   const handleReorder = useCallback(async (draggedTrackId: string, targetTrackId: string) => {
     if (!onReorder || draggedTrackId === targetTrackId) return;
 
@@ -369,65 +385,61 @@ export default function TrackList({
     <div className={`track-selection-collapse ${selectionMode ? 'open' : ''}`} aria-hidden={!selectionMode}>
       <div className="track-selection-toolbar" role="toolbar" aria-label="Selection actions">
         <div className="track-selection-actions">
-          <div className="track-selection-actions-center">
-            <button
-              type="button"
-              className="track-selection-seg"
-              onClick={() => setSelectedTrackIds(allVisibleSelected ? [] : tracks.map(track => track.id))}
-              aria-label={allVisibleSelected ? t('unselectAll') : t('selectAll')}
-              title={allVisibleSelected ? t('unselectAll') : t('selectAll')}
-            >
-              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.4" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
-                <rect x="3.5" y="3.5" width="17" height="17" rx="3"></rect>
-                {allVisibleSelected && <polyline points="7.5 12.5 10.5 15.5 16.5 8.5"></polyline>}
-              </svg>
-            </button>
+          <button
+            type="button"
+            className="track-selection-seg"
+            onClick={() => setSelectedTrackIds(allVisibleSelected ? [] : tracks.map(track => track.id))}
+            aria-label={allVisibleSelected ? t('unselectAll') : t('selectAll')}
+            title={allVisibleSelected ? t('unselectAll') : t('selectAll')}
+          >
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.4" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+              <rect x="3.5" y="3.5" width="17" height="17" rx="3"></rect>
+              {allVisibleSelected && <polyline points="7.5 12.5 10.5 15.5 16.5 8.5"></polyline>}
+            </svg>
+          </button>
 
-            {isPlaylistScoped && (
-              <button
-                type="button"
-                className="track-selection-seg"
-                disabled={!selectedTrackIds.length}
-                onClick={() => setBulkRemoveConfirmOpen(true)}
-                aria-label={t('removeFromPlaylist')}
-                title={t('removeFromPlaylist')}
-              >
-                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
-                  <path d="M3 6h18"></path>
-                  <path d="M8 6V4.8c0-.66.54-1.2 1.2-1.2h5.6c.66 0 1.2.54 1.2 1.2V6"></path>
-                  <path d="M18 6v12.2c0 .66-.54 1.2-1.2 1.2H7.2c-.66 0-1.2-.54-1.2-1.2V6"></path>
-                  <path d="M10 10v6"></path>
-                  <path d="M14 10v6"></path>
-                </svg>
-              </button>
-            )}
+          <button
+            type="button"
+            className="track-selection-seg"
+            disabled={!selectedTrackIds.length}
+            onClick={() => setBulkPlaylistOpen(true)}
+            aria-label={t('addToPlaylist')}
+            title={t('addToPlaylist')}
+          >
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.6" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+              <line x1="12" y1="5" x2="12" y2="19"></line>
+              <line x1="5" y1="12" x2="19" y2="12"></line>
+            </svg>
+          </button>
 
-            <button
-              type="button"
-              className="track-selection-seg"
-              disabled={!selectedTrackIds.length}
-              onClick={() => setBulkPlaylistOpen(true)}
-              aria-label={t('addToPlaylist')}
-              title={t('addToPlaylist')}
-            >
-              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.6" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
-                <line x1="12" y1="5" x2="12" y2="19"></line>
-                <line x1="5" y1="12" x2="19" y2="12"></line>
-              </svg>
-            </button>
+          <button
+            type="button"
+            className="track-selection-seg"
+            disabled={!selectedTrackIds.length}
+            onClick={() => setBulkRemoveConfirmOpen(true)}
+            aria-label={isPlaylistScoped ? t('removeFromPlaylist') : t('removeFromLibrary')}
+            title={isPlaylistScoped ? t('removeFromPlaylist') : t('removeFromLibrary')}
+          >
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+              <path d="M3 6h18"></path>
+              <path d="M8 6V4.8c0-.66.54-1.2 1.2-1.2h5.6c.66 0 1.2.54 1.2 1.2V6"></path>
+              <path d="M18 6v12.2c0 .66-.54 1.2-1.2 1.2H7.2c-.66 0-1.2-.54-1.2-1.2V6"></path>
+              <path d="M10 10v6"></path>
+              <path d="M14 10v6"></path>
+            </svg>
+          </button>
 
-            <button
-              type="button"
-              className="track-selection-seg"
-              onClick={resetSelection}
-              aria-label={t('done')}
-              title={t('done')}
-            >
-              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.6" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
-                <polyline points="20 6 9 17 4 12"></polyline>
-              </svg>
-            </button>
-          </div>
+          <button
+            type="button"
+            className="track-selection-seg"
+            onClick={resetSelection}
+            aria-label={t('done')}
+            title={t('done')}
+          >
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.6" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+              <polyline points="20 6 9 17 4 12"></polyline>
+            </svg>
+          </button>
         </div>
       </div>
     </div>
@@ -435,9 +447,10 @@ export default function TrackList({
 
   return (
     <div className={`track-list-shell ${selectionMode ? 'selection-active' : ''}`}>
-      {selectionToolbarHost ? createPortal(selectionToolbar, selectionToolbarHost) : selectionToolbar}
+      {selectionToolbarTarget ? createPortal(selectionToolbar, selectionToolbarTarget) : selectionToolbar}
 
       <div className="track-list-scroll" ref={scrollContainerRef}>
+        <div className="track-list-divider" aria-hidden="true" />
         <div className={`track-list ${selectionMode ? 'selection-active' : ''}`} ref={listRef}>
           {shouldVirtualize && windowRange.topPad > 0 && (
             <div style={{ height: windowRange.topPad }} aria-hidden="true" />
@@ -601,15 +614,15 @@ export default function TrackList({
         document.body
       )}
 
-      {bulkRemoveConfirmOpen && onRemoveTracks && createPortal(
+      {bulkRemoveConfirmOpen && createPortal(
         <ConfirmDialog
-          title={t('removeFromPlaylist')}
+          title={isPlaylistScoped ? t('removeFromPlaylist') : t('removeFromLibrary')}
           message={`${t('deletePlaylistWarn') || 'Are you sure you want to remove'} ${selectedTrackIds.length} ${t('songsSelected')}?`}
           confirmLabel={t('remove')}
           cancelLabel={t('cancel')}
           destructive
           onConfirm={async () => {
-            await handleRemoveFromPlaylist(selectedTrackIds);
+            await handleRemoveSelected(selectedTrackIds);
           }}
           onCancel={() => setBulkRemoveConfirmOpen(false)}
         />,

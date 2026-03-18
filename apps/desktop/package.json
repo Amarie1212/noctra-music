@@ -7,6 +7,11 @@
     "appId": "com.noctra.app",
     "productName": "NOCTRA",
     "npmRebuild": false,
+    "files": [
+      "dist-renderer/**/*",
+      "dist-electron/**/*",
+      "package.json"
+    ],
     "publish": [
       {
         "provider": "github",

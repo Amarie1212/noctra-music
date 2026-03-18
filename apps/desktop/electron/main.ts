@@ -267,7 +267,7 @@ function createWindow() {
       event.preventDefault();
     });
   } else {
-    mainWindow.loadFile(join(__dirname, '../dist/index.html'));
+    mainWindow.loadFile(join(__dirname, '../dist-renderer/index.html'));
   }
 
   const sendMaximizeState = () => {

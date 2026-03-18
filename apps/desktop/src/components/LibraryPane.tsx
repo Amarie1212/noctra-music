@@ -1054,8 +1054,6 @@ useEffect(() => {
 
         {selectedGroup && renderSelectedGroupHeader()}
         {selectedPlaylistView && renderSelectedPlaylistHeader()}
-        <div ref={selectionHostRef} className="library-selection-host" />
-
         <div
           ref={contentRef}
           className={`library-content ${hasContentScroll ? 'has-scrollbar' : 'no-scrollbar'}`}
@@ -1065,6 +1063,7 @@ useEffect(() => {
             {libraryTab !== 'songs' && libraryTab !== 'playlists' && renderGroupBrowser()}
             {libraryTab === 'playlists' && renderPlaylists()}
           </div>
+          <div ref={selectionHostRef} className="library-selection-host" />
         </div>
       </section>
 
