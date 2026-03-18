@@ -1,0 +1,53 @@
+{
+  "name": "desktop",
+  "version": "0.0.0-a1",
+  "private": true,
+  "main": "dist-electron/main.js",
+  "build": {
+    "appId": "com.noctra.app",
+    "productName": "NOCTRA",
+    "npmRebuild": false,
+    "publish": [
+      {
+        "provider": "github",
+        "owner": "Amarie1212",
+        "repo": "noctra-music"
+      }
+    ],
+    "win": {
+      "target": "nsis"
+    }
+  },
+  "scripts": {
+    "dev:electron": "tsup --watch",
+    "dev:vite": "vite",
+    "dev": "concurrently \"pnpm run dev:vite\" \"pnpm run dev:electron\" \"npx wait-on http://127.0.0.1:5173 && electron .\"",
+    "build": "tsup && vite build && electron-builder",
+    "preview": "vite preview"
+  },
+  "dependencies": {
+    "@music/core": "workspace:*",
+    "better-sqlite3": "^11.7.0",
+    "electron-store": "^10.0.0",
+    "electron-updater": "^6.8.3",
+    "music-metadata": "^7.14.0"
+  },
+  "devDependencies": {
+    "@electron/rebuild": "^4.0.3",
+    "@types/better-sqlite3": "^7.6.12",
+    "@types/react": "^19.0.0",
+    "@types/react-dom": "^19.0.0",
+    "@vitejs/plugin-react": "^4.3.0",
+    "concurrently": "^9.0.0",
+    "electron": "^33.2.0",
+    "electron-builder": "^24.13.3",
+    "png-to-ico": "^3.0.1",
+    "react": "^19.0.0",
+    "react-dom": "^19.0.0",
+    "tsup": "^8.5.1",
+    "typescript": "^5.6.0",
+    "vite": "^6.0.0",
+    "wait-on": "^9.0.4",
+    "zustand": "^5.0.0"
+  }
+}
