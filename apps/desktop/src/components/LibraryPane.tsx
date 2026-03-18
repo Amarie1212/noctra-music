@@ -53,6 +53,9 @@ export default function LibraryPane() {
   const contentRef = useRef<HTMLDivElement | null>(null);
   const selectionHostRef = useRef<HTMLDivElement | null>(null);
   const swapShellRef = useRef<HTMLElement | null>(null);
+  const detailHeaderRef = useRef<HTMLDivElement | null>(null);
+  const detailTitleRowRef = useRef<HTMLDivElement | null>(null);
+  const detailActionsRef = useRef<HTMLDivElement | null>(null);
   const songGridSentinelRef = useRef<HTMLDivElement | null>(null);
   const tabsRef = useRef<HTMLDivElement | null>(null);
   const tabsInnerRef = useRef<HTMLDivElement | null>(null);
@@ -87,6 +90,7 @@ export default function LibraryPane() {
   const [playlistDeleteConfirm, setPlaylistDeleteConfirm] = useState<Playlist | null>(null);
   const [renamingPlaylist, setRenamingPlaylist] = useState<Playlist | null>(null);
   const [renameValue, setRenameValue] = useState('');
+  const [detailHeaderWrapped, setDetailHeaderWrapped] = useState(false);
 
   const tabs = useMemo<Array<{ id: LibraryTab; label: string }>>(() => [
     { id: 'songs', label: t('songs') },
@@ -350,6 +354,52 @@ useEffect(() => {
     if (libraryTab !== 'playlists') return null;
     return filteredPlaylists.find(item => item.playlist.id === selectedGroupId) || null;
   }, [filteredPlaylists, libraryTab, selectedGroupId]);
+
+  useLayoutEffect(() => {
+    const headerEl = detailHeaderRef.current;
+    const titleRowEl = detailTitleRowRef.current;
+    const actionsEl = detailActionsRef.current;
+    const hasDetail = Boolean(selectedGroup || selectedPlaylistView);
+
+    if (!headerEl || !titleRowEl || !actionsEl || !hasDetail) {
+      setDetailHeaderWrapped(false);
+      return;
+    }
+
+    let rafId: number | null = null;
+
+    const measure = () => {
+      rafId = null;
+      headerEl.classList.remove('actions-wrapped');
+      const titleRowRect = titleRowEl.getBoundingClientRect();
+      const actionsRect = actionsEl.getBoundingClientRect();
+      const safetyGap = 6;
+      const shouldWrap = actionsRect.left <= titleRowRect.right + safetyGap;
+      setDetailHeaderWrapped(current => (current === shouldWrap ? current : shouldWrap));
+    };
+
+    const requestMeasure = () => {
+      if (rafId != null) return;
+      rafId = window.requestAnimationFrame(measure);
+    };
+
+    requestMeasure();
+    window.addEventListener('resize', requestMeasure);
+    return () => {
+      window.removeEventListener('resize', requestMeasure);
+      if (rafId != null) {
+        window.cancelAnimationFrame(rafId);
+      }
+    };
+  }, [
+    selectedGroup?.id,
+    selectedGroup?.title,
+    selectedPlaylistView?.playlist.id,
+    selectedPlaylistView?.playlist.name,
+    playlistDetailSort,
+    sort,
+    language,
+  ]);
 
   const sortedSelectedGroupTracks = useMemo(
     () => (selectedGroup ? sortTracksForView(selectedGroup.tracks, sort) : []),
@@ -668,7 +718,7 @@ useEffect(() => {
   const renderSelectedGroupHeader = () => {
     if (!selectedGroup) return null;
     return (
-      <div className="library-detail-header">
+      <div ref={detailHeaderRef} className={`library-detail-header ${detailHeaderWrapped ? 'actions-wrapped' : ''}`}>
         <div className="library-detail-meta-block">
           <button
             className="library-back-btn icon-only"
@@ -684,13 +734,13 @@ useEffect(() => {
             </svg>
           </button>
           <div className="library-detail-meta">
-            <div className="library-detail-title-row">
+            <div ref={detailTitleRowRef} className="library-detail-title-row">
               <h2>{selectedGroup.title}</h2>
               <p>{buildLocalizedGroupSubtitleFast(selectedGroup, libraryTab as Exclude<LibraryTab, 'songs' | 'playlists'>, t)}</p>
             </div>
           </div>
         </div>
-        <div className="library-detail-actions">
+        <div ref={detailActionsRef} className="library-detail-actions">
           <label className="library-sort-control detail">
             <span>{t('sort')}</span>
             <CustomSelect
@@ -715,7 +765,7 @@ useEffect(() => {
   const renderSelectedPlaylistHeader = () => {
     if (!selectedPlaylistView) return null;
     return (
-      <div className="library-detail-header">
+      <div ref={detailHeaderRef} className={`library-detail-header ${detailHeaderWrapped ? 'actions-wrapped' : ''}`}>
         <div className="library-detail-meta-block">
           <button
             className="library-back-btn icon-only"
@@ -731,7 +781,7 @@ useEffect(() => {
             </svg>
           </button>
           <div className="library-detail-meta">
-            <div className="library-detail-title-row">
+            <div ref={detailTitleRowRef} className="library-detail-title-row">
               <h2>{selectedPlaylistView.playlist.name}</h2>
               <p>
                 {selectedPlaylistView.tracks.length} {t('songUnit')} {'\u2022'} {Math.round(selectedPlaylistView.tracks.reduce((sum, track) => sum + track.duration, 0) / 60)} {t('minuteUnit')}
@@ -739,7 +789,7 @@ useEffect(() => {
             </div>
           </div>
         </div>
-        <div className="library-detail-actions">
+        <div ref={detailActionsRef} className="library-detail-actions">
           <label className="library-sort-control detail">
             <span>{t('sort')}</span>
             <CustomSelect

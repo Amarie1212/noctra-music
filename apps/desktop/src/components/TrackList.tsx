@@ -93,7 +93,7 @@ export default function TrackList({
 
   // Virtualize earlier to reduce DOM node count (RAM/CPU).
   // Support virtualization for reorderable lists too by keeping the scroll position stable.
-  const shouldVirtualize = tracks.length > 40;
+  const shouldVirtualize = tracks.length > 400;
   const ROW_HEIGHT = 58; // px (matched to new padding + artwork size)
   const OVERSCAN = 6;
 
@@ -449,67 +449,64 @@ export default function TrackList({
     <div className={`track-list-shell ${selectionMode ? 'selection-active' : ''}`}>
       {selectionToolbarTarget ? createPortal(selectionToolbar, selectionToolbarTarget) : selectionToolbar}
 
-      <div className="track-list-scroll" ref={scrollContainerRef}>
-        <div className="track-list-divider" aria-hidden="true" />
-        <div className={`track-list ${selectionMode ? 'selection-active' : ''}`} ref={listRef}>
-          {shouldVirtualize && windowRange.topPad > 0 && (
-            <div style={{ height: windowRange.topPad }} aria-hidden="true" />
-          )}
+      <div className={`track-list ${selectionMode ? 'selection-active' : ''}`} ref={listRef}>
+        {shouldVirtualize && windowRange.topPad > 0 && (
+          <div style={{ height: windowRange.topPad }} aria-hidden="true" />
+        )}
 
-          {(shouldVirtualize ? tracks.slice(windowRange.start, windowRange.end) : tracks).map((track, index) => {
-            const absoluteIndex = shouldVirtualize ? windowRange.start + index : index;
-            return (
-              <TrackRow
-                key={track.id}
-                track={track}
-                index={absoluteIndex}
-                selectionMode={selectionMode}
-                isSelected={selectedTrackIdSet.has(track.id)}
-                isCurrentTrack={track.id === currentTrackId}
-                isCurrentPlaying={track.id === currentTrackId && isPlaying}
-                reorderable={reorderable}
-                draggingTrackId={draggingTrackId}
-                dropTargetTrackId={dropTargetTrackId}
-                onPlay={handlePlay}
-                onTogglePlay={togglePlay}
-                onContextMenu={handleContextMenu}
-                onToggleSelection={toggleTrackSelection}
-                onOpenKebab={handleOpenKebabMenu}
-                onDragStart={(id: string, e: React.DragEvent) => {
-                  if (!reorderable || selectionMode) return e.preventDefault();
-                  setDraggingTrackId(id);
-                  e.dataTransfer.effectAllowed = 'move';
-                  e.dataTransfer.setData('text/plain', id);
-                }}
-                onDragOver={(id: string, e: React.DragEvent) => {
-                  if (!reorderable || selectionMode || !draggingTrackId || draggingTrackId === id) return;
-                  e.preventDefault();
-                  e.dataTransfer.dropEffect = 'move';
-                  setDropTargetTrackId(id);
-                }}
-                onDrop={async (id: string, e: React.DragEvent) => {
-                  if (!reorderable || selectionMode) return;
-                  e.preventDefault();
-                  const draggedId = e.dataTransfer.getData('text/plain') || draggingTrackId;
-                  setDropTargetTrackId(null);
-                  setDraggingTrackId(null);
-                  if (draggedId) await handleReorder(draggedId, id);
-                }}
-                onDragEnd={() => {
-                  setDraggingTrackId(null);
-                  setDropTargetTrackId(null);
-                }}
-                showAlbum={showAlbum}
-                showGenre={showGenre}
-                t={t}
-              />
-            );
-          })}
+        {(shouldVirtualize ? tracks.slice(windowRange.start, windowRange.end) : tracks).map((track, index) => {
+          const absoluteIndex = shouldVirtualize ? windowRange.start + index : index;
+          return (
+            <TrackRow
+              key={track.id}
+              track={track}
+              index={absoluteIndex}
+              selectionMode={selectionMode}
+              isSelected={selectedTrackIdSet.has(track.id)}
+              isCurrentTrack={track.id === currentTrackId}
+              isCurrentPlaying={track.id === currentTrackId && isPlaying}
+              reorderable={reorderable}
+              draggingTrackId={draggingTrackId}
+              dropTargetTrackId={dropTargetTrackId}
+              onPlay={handlePlay}
+              onTogglePlay={togglePlay}
+              onContextMenu={handleContextMenu}
+              onToggleSelection={toggleTrackSelection}
+              onOpenKebab={handleOpenKebabMenu}
+              onDragStart={(id: string, e: React.DragEvent) => {
+                if (!reorderable || selectionMode) return e.preventDefault();
+                setDraggingTrackId(id);
+                e.dataTransfer.effectAllowed = 'move';
+                e.dataTransfer.setData('text/plain', id);
+              }}
+              onDragOver={(id: string, e: React.DragEvent) => {
+                if (!reorderable || selectionMode || !draggingTrackId || draggingTrackId === id) return;
+                e.preventDefault();
+                e.dataTransfer.dropEffect = 'move';
+                setDropTargetTrackId(id);
+              }}
+              onDrop={async (id: string, e: React.DragEvent) => {
+                if (!reorderable || selectionMode) return;
+                e.preventDefault();
+                const draggedId = e.dataTransfer.getData('text/plain') || draggingTrackId;
+                setDropTargetTrackId(null);
+                setDraggingTrackId(null);
+                if (draggedId) await handleReorder(draggedId, id);
+              }}
+              onDragEnd={() => {
+                setDraggingTrackId(null);
+                setDropTargetTrackId(null);
+              }}
+              showAlbum={showAlbum}
+              showGenre={showGenre}
+              t={t}
+            />
+          );
+        })}
 
-          {shouldVirtualize && windowRange.bottomPad > 0 && (
-            <div style={{ height: windowRange.bottomPad }} aria-hidden="true" />
-          )}
-        </div>
+        {shouldVirtualize && windowRange.bottomPad > 0 && (
+          <div style={{ height: windowRange.bottomPad }} aria-hidden="true" />
+        )}
       </div>
 
       {contextMenu && selectedTrack && menuPosition && createPortal(
@@ -928,22 +925,24 @@ function SingleTrackPlaylistModal({
           </div>
         </div>
 
-        <div className="playlist-modal-item-info">
-          <div className="playlist-modal-art">
-             {artworkSrc ? (
-              <img
-                src={artworkSrc}
-                alt=""
-                loading="lazy"
-                decoding="async"
-                fetchPriority="low"
-                draggable={false}
-              />
-            ) : 'Art'}
-          </div>
-          <div className="playlist-modal-meta">
-            <strong>{track.title}</strong>
-            <span>{track.artist}</span>
+        <div className="playlist-modal-list single-preview">
+          <div className="playlist-modal-track picker static-preview">
+            <div className="playlist-modal-track-art">
+              {artworkSrc ? (
+                <img
+                  src={artworkSrc}
+                  alt=""
+                  loading="lazy"
+                  decoding="async"
+                  fetchPriority="low"
+                  draggable={false}
+                />
+              ) : <span>Art</span>}
+            </div>
+            <div className="playlist-modal-track-meta">
+              <span>{track.title}</span>
+              <small>{track.artist || t('unknownArtist')}</small>
+            </div>
           </div>
         </div>
 
