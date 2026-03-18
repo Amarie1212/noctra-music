@@ -3,6 +3,7 @@ import type { Track, Playlist, PlayerState, AppSettings, LibrarySort, AppTheme }
 import { DEFAULT_SETTINGS, generateId } from '@music/core';
 
 const SETTINGS_CACHE_KEY = 'music.settings.cache';
+const METADATA_PARSE_CONCURRENCY = 6;
 
 function readCachedSettings(): AppSettings {
   if (typeof window === 'undefined') return DEFAULT_SETTINGS;
@@ -88,26 +89,29 @@ export const useLibraryStore = create<LibraryStore>((set, get) => ({
     const newPaths = paths.filter(p => !existingPaths.has(p));
     if (!newPaths.length) return;
 
-    const newTracks: Track[] = [];
-    for (const p of newPaths) {
-      const meta = await window.api.metadata.parse(p);
-      newTracks.push({
+    const newTracks = await mapWithConcurrency(newPaths, METADATA_PARSE_CONCURRENCY, async filePath => {
+      const meta = await window.api.metadata.parse(filePath);
+      return {
         id: generateId(),
-        filePath: p,
-        title: meta.title || p.split(/[\\/]/).pop()?.replace(/\.[^/.]+$/, '') || 'Unknown',
+        filePath,
+        title: meta.title || filePath.split(/[\\/]/).pop()?.replace(/\.[^/.]+$/, '') || 'Unknown',
         artist: meta.artist || 'Unknown Artist',
         album: meta.album || 'Unknown Album',
         genre: meta.genre || 'Unknown',
         duration: meta.duration || 0,
         artworkData: meta.artworkData,
+        artworkPath: meta.artworkPath,
         year: meta.year,
         trackNumber: meta.trackNumber,
         format: meta.format || 'Unknown',
         size: meta.size || 0,
         addedAt: Date.now(),
         playCount: 0,
-      });
-    }
+      } as Track;
+    });
+
+    if (!newTracks.length) return;
+
     await window.api.library.addTracks(newTracks);
     const updated = [...newTracks, ...get().tracks];
     set({ tracks: sortTracks(updated, get().sort) });
@@ -115,13 +119,16 @@ export const useLibraryStore = create<LibraryStore>((set, get) => ({
 
   addFolder: async (folderPath) => {
     const paths = await window.api.folder.scan(folderPath);
+    if (!paths.length) return;
     await get().addFiles(paths);
   },
 
   addFolders: async (folderPaths) => {
-    for (const folderPath of folderPaths) {
-      await get().addFolder(folderPath);
-    }
+    if (!folderPaths.length) return;
+    const scanned = await Promise.all(folderPaths.map(folderPath => window.api.folder.scan(folderPath)));
+    const allPaths = [...new Set(scanned.flat())];
+    if (!allPaths.length) return;
+    await get().addFiles(allPaths);
   },
 
   clearAll: async () => {
@@ -194,6 +201,27 @@ function sortTracks(tracks: Track[], sort: LibrarySort): Track[] {
 
 function compareText(a: string, b: string) {
   return a.localeCompare(b, undefined, { sensitivity: 'base', numeric: true });
+}
+
+async function mapWithConcurrency<T, R>(
+  items: T[],
+  concurrency: number,
+  mapper: (item: T, index: number) => Promise<R>
+) {
+  const results: R[] = new Array(items.length);
+  let nextIndex = 0;
+
+  const workers = Array.from({ length: Math.min(concurrency, items.length) }, async () => {
+    while (true) {
+      const currentIndex = nextIndex;
+      nextIndex += 1;
+      if (currentIndex >= items.length) return;
+      results[currentIndex] = await mapper(items[currentIndex], currentIndex);
+    }
+  });
+
+  await Promise.all(workers);
+  return results;
 }
 
 // ─── Grouping Helpers ────────────────────────────────────────────────────────
