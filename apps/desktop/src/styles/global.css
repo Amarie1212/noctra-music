@@ -1,5 +1,3 @@
-@import url('https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;600&display=swap');
-
 :root {
   --bg-color: #0c2d2d;
   --surface-color: #113838;
@@ -199,7 +197,7 @@
 }
 
 body {
-  font-family: 'Outfit', sans-serif;
+  font-family: "Segoe UI", "Helvetica Neue", Arial, sans-serif;
   background: var(--bg-color);
   color: var(--text-primary);
   overflow: hidden;

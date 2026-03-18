@@ -500,7 +500,7 @@ function applyTheme(settings: AppSettings) {
   document.documentElement.style.setProperty('--accent', settings.accentColor);
   document.documentElement.setAttribute('data-theme', resolvedTheme);
   document.documentElement.setAttribute('data-theme-source', settings.theme);
-  window.api.theme.set(settings.theme as any);
+  window.api?.theme?.set?.(settings.theme as any);
 }
 
 export function applyCachedThemeSnapshot() {

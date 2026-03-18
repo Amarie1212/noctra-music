@@ -1,11 +1,14 @@
 {
-  "name": "music-player",
-  "version": "1.0.0",
+  "name": "desktop",
+  "version": "0.0.0-a1",
   "private": true,
-  "scripts": {
-    "dev": "pnpm --filter desktop dev",
-    "dev:desktop": "pnpm --filter desktop dev",
-    "build:desktop": "pnpm --filter desktop build",
-    "dev:mobile": "pnpm --filter mobile start"
+  "main": "dist-electron/main.js",
+  "dependencies": {
+    "@music/core": "workspace:*",
+    "better-sqlite3": "^11.7.0",
+    "electron-store": "^10.0.0",
+    "electron-updater": "^6.8.3",
+    "fs-extra": "^11.3.4",
+    "music-metadata": "^7.14.0"
   }
 }
