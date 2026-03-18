@@ -1,4 +1,4 @@
-import { useEffect, useRef } from 'react';
+import React, { useEffect, useRef } from 'react';
 import { useLibraryStore, usePlayerStore, usePlaylistStore, useSettingsStore } from './store';
 import AudioEngine from './components/AudioEngine';
 import ToastContainer from './components/ToastContainer';
@@ -8,6 +8,34 @@ import LibraryPane from './components/LibraryPane';
 import { markPerfEnd, markPerfStart, scheduleAfterFirstPaint, scheduleMemorySnapshot } from './perf';
 
 export type Page = 'home' | 'library' | 'playlists' | 'playlist-detail' | 'settings';
+
+class AppErrorBoundary extends React.Component<
+  { children: React.ReactNode },
+  { error: Error | null }
+> {
+  state = { error: null as Error | null };
+
+  static getDerivedStateFromError(error: Error) {
+    return { error };
+  }
+
+  componentDidCatch(error: Error) {
+    console.error('App render error:', error);
+  }
+
+  render() {
+    if (this.state.error) {
+      return (
+        <div style={{ padding: 20, color: 'white', background: '#7f1d1d', fontFamily: 'Segoe UI, sans-serif' }}>
+          <h1>App Render Error</h1>
+          <p>{this.state.error.message}</p>
+          <pre style={{ whiteSpace: 'pre-wrap' }}>{this.state.error.stack}</pre>
+        </div>
+      );
+    }
+    return this.props.children;
+  }
+}
 
 export default function App() {
   const loadTracks = useLibraryStore(s => s.loadTracks);
@@ -46,17 +74,45 @@ export default function App() {
   }, [isLibraryLoading, playlistCount, trackCount]);
 
   return (
-    <div className="app-root">
-      <AudioEngine />
-      
-      <MainHeader />
-      
-      <div className="app-container has-active-track">
-        <NowPlayingPane />
-        <LibraryPane />
-      </div>
+    <AppErrorBoundary>
+      <div className="app-root">
+        <div
+          style={{
+            position: 'fixed',
+            top: 8,
+            left: 8,
+            zIndex: 99999,
+            padding: '6px 8px',
+            borderRadius: 8,
+            background: 'rgba(0, 0, 0, 0.72)',
+            color: '#fff',
+            fontSize: 12,
+            fontFamily: 'Consolas, monospace',
+            pointerEvents: 'none',
+            whiteSpace: 'pre-wrap',
+          }}
+        >
+          {[
+            'debug: app-mounted',
+            `tracks=${trackCount}`,
+            `playlists=${playlistCount}`,
+            `loading=${String(isLibraryLoading)}`,
+            `currentTrack=${currentTrackId ?? 'none'}`,
+            `paneOpen=${String(isNowPlayingOpen)}`,
+            `paneVisible=${String(isNowPlayingVisible)}`,
+          ].join('\n')}
+        </div>
 
-      <ToastContainer />
-    </div>
+        <AudioEngine />
+        <MainHeader />
+
+        <div className="app-container has-active-track">
+          <NowPlayingPane />
+          <LibraryPane />
+        </div>
+
+        <ToastContainer />
+      </div>
+    </AppErrorBoundary>
   );
 }
