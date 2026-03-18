@@ -132,6 +132,7 @@ function initAutoUpdater() {
 var userDataPath;
 var dbPath;
 var db;
+var firstRunMarkerPath;
 function ensurePlaylistArtworkColumn() {
   try {
     const playlistCols = db.prepare("PRAGMA table_info(playlists)").all().map((r) => r.name);
@@ -151,6 +152,7 @@ function ensurePlaylistArtworkColumn() {
 function initDb() {
   userDataPath = import_electron.app.getPath("userData");
   dbPath = (0, import_path.join)(userDataPath, "music.db");
+  firstRunMarkerPath = (0, import_path.join)(userDataPath, ".first-run-complete");
   db = new import_better_sqlite3.default(dbPath);
   db.pragma("journal_mode = WAL");
   db.exec(`
@@ -175,7 +177,7 @@ function initDb() {
     );
   `);
   ensurePlaylistArtworkColumn();
-  setTimeout(migrateTrackArtwork, 2e3);
+  setTimeout(migrateTrackArtwork, 250);
 }
 function migrateTrackArtwork() {
   try {
@@ -202,7 +204,7 @@ function migrateTrackArtwork() {
       }
     }
     if (tracksWithBase64.length === 1e3) {
-      setTimeout(migrateTrackArtwork, 2e3);
+      setTimeout(migrateTrackArtwork, 250);
     }
   } catch (err) {
     console.error("Artwork migration error:", err);
@@ -215,6 +217,16 @@ function getSettings() {
 }
 function saveSettings(s) {
   db.prepare("INSERT OR REPLACE INTO settings (key, value) VALUES (?, ?)").run("app", JSON.stringify(s));
+}
+function consumeFirstRunState() {
+  const isFirstRun = !(0, import_fs.existsSync)(firstRunMarkerPath);
+  if (isFirstRun) {
+    try {
+      (0, import_fs.writeFileSync)(firstRunMarkerPath, String(Date.now()));
+    } catch {
+    }
+  }
+  return isFirstRun;
 }
 function createWindow() {
   mainWindow = new import_electron.BrowserWindow({
@@ -293,6 +305,7 @@ import_electron.ipcMain.on("window:maximize", () => {
 import_electron.ipcMain.on("window:close", () => mainWindow?.close());
 import_electron.ipcMain.handle("window:isMaximized", () => mainWindow?.isMaximized() ?? false);
 import_electron.ipcMain.handle("app:getVersion", () => import_electron.app.getVersion());
+import_electron.ipcMain.handle("app:consumeFirstRun", () => consumeFirstRunState());
 import_electron.ipcMain.handle("updates:getState", () => updaterState);
 import_electron.ipcMain.handle("updates:check", async () => {
   if (!import_electron.app.isPackaged) {

@@ -10,6 +10,7 @@ import_electron.contextBridge.exposeInMainWorld("api", {
     close: () => import_electron.ipcRenderer.send("window:close"),
     isMaximized: () => import_electron.ipcRenderer.invoke("window:isMaximized"),
     getVersion: () => import_electron.ipcRenderer.invoke("app:getVersion"),
+    consumeFirstRun: () => import_electron.ipcRenderer.invoke("app:consumeFirstRun"),
     onMaximizeChange: (cb) => {
       const listener = (_event, value) => cb(Boolean(value));
       import_electron.ipcRenderer.on("window:maximize-changed", listener);
