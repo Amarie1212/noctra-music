@@ -9,6 +9,7 @@ contextBridge.exposeInMainWorld('api', {
     close: () => ipcRenderer.send('window:close'),
     isMaximized: () => ipcRenderer.invoke('window:isMaximized') as Promise<boolean>,
     getVersion: () => ipcRenderer.invoke('app:getVersion') as Promise<string>,
+    consumeFirstRun: () => ipcRenderer.invoke('app:consumeFirstRun') as Promise<boolean>,
     onMaximizeChange: (cb: (isMaximized: boolean) => void) => {
       const listener = (_event: unknown, value: boolean) => cb(Boolean(value));
       ipcRenderer.on('window:maximize-changed', listener);

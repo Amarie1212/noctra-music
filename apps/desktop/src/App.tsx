@@ -5,7 +5,7 @@ import ToastContainer from './components/ToastContainer';
 import MainHeader from './components/MainHeader';
 import NowPlayingPane from './components/NowPlayingPane';
 import LibraryPane from './components/LibraryPane';
-import { markPerfEnd, markPerfStart, scheduleAfterFirstPaint, scheduleMemorySnapshot } from './perf';
+import { markPerfEnd, markPerfStart, scheduleMemorySnapshot } from './perf';
 
 export type Page = 'home' | 'library' | 'playlists' | 'playlist-detail' | 'settings';
 
@@ -23,14 +23,8 @@ export default function App() {
   const startupLoggedRef = useRef(false);
 
   useEffect(() => {
-    let cancelDeferredLoads = () => {};
     markPerfStart('app-startup');
-    void loadSettings().finally(() => {
-      cancelDeferredLoads = scheduleAfterFirstPaint(() => {
-        void Promise.allSettled([loadTracks(), loadPlaylists()]);
-      });
-    });
-    return () => cancelDeferredLoads();
+    void Promise.allSettled([loadSettings(), loadTracks(), loadPlaylists()]);
   }, [loadPlaylists, loadSettings, loadTracks]);
 
   useEffect(() => {

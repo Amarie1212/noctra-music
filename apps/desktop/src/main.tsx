@@ -14,15 +14,26 @@ window.onerror = (msg, url, line, col, error) => {
   </div>`;
 };
 
-try {
-  applyCachedThemeSnapshot();
-  ReactDOM.createRoot(document.getElementById('root')!).render(
-    <App />
-  );
-} catch (e: any) {
-  document.body.innerHTML = `<div style="color: white; background: red; padding: 20px;">
-    <h1>Render Error</h1>
-    <p>${e.message}</p>
-    <pre>${e.stack}</pre>
-  </div>`;
+async function bootstrap() {
+  try {
+    const isFirstRun = await window.api.window.consumeFirstRun();
+    if (isFirstRun) {
+      window.localStorage.removeItem('music.settings.cache');
+      window.localStorage.removeItem('music.library.scroll-positions');
+      window.localStorage.removeItem('music.perf-debug');
+    }
+
+    applyCachedThemeSnapshot();
+    ReactDOM.createRoot(document.getElementById('root')!).render(
+      <App />
+    );
+  } catch (e: any) {
+    document.body.innerHTML = `<div style="color: white; background: red; padding: 20px;">
+      <h1>Render Error</h1>
+      <p>${e.message}</p>
+      <pre>${e.stack}</pre>
+    </div>`;
+  }
 }
+
+void bootstrap();

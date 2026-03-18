@@ -7,6 +7,7 @@
     "appId": "com.noctra.app",
     "productName": "NOCTRA",
     "npmRebuild": false,
+    "compression": "store",
     "files": [
       "dist-renderer/**/*",
       "dist-electron/**/*",
@@ -23,8 +24,11 @@
       "target": "nsis"
     },
     "nsis": {
-      "oneClick": false,
-      "allowToChangeInstallationDirectory": true,
+      "oneClick": true,
+      "perMachine": false,
+      "allowElevation": true,
+      "runAfterFinish": true,
+      "deleteAppDataOnUninstall": true,
       "artifactName": "${productName} Setup.${ext}"
     }
   },
@@ -32,7 +36,11 @@
     "dev:electron": "tsup --watch",
     "dev:vite": "vite",
     "dev": "concurrently \"pnpm run dev:vite\" \"pnpm run dev:electron\" \"npx wait-on http://127.0.0.1:5173 && electron .\"",
-    "build": "tsup && vite build && electron-builder",
+    "build:electron": "tsup",
+    "build:renderer": "vite build",
+    "build:bundle": "concurrently -k \"pnpm run build:electron\" \"pnpm run build:renderer\"",
+    "build:installer": "pnpm run build:bundle && electron-builder --publish never",
+    "build": "pnpm run build:installer",
     "preview": "vite preview"
   },
   "dependencies": {

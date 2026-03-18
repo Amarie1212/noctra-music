@@ -550,7 +550,7 @@ export const useSettingsStore = create<SettingsStore>((set, get) => ({
 
     if (looksLikeLegacyDefaults || settings.playerLayout !== savedSettings?.playerLayout) {
       settings = { ...settings, lastVolume: looksLikeLegacyDefaults ? 0.5 : settings.lastVolume };
-      await window.api.settings.save(settings);
+      void window.api.settings.save(settings);
     }
     writeCachedSettings(settings);
     set({ settings, loaded: true });

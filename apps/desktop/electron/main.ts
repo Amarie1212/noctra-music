@@ -120,6 +120,7 @@ function initAutoUpdater() {
 let userDataPath: string;
 let dbPath: string;
 let db: Database.Database;
+let firstRunMarkerPath: string;
 
 function ensurePlaylistArtworkColumn() {
   try {
@@ -143,6 +144,7 @@ function ensurePlaylistArtworkColumn() {
 function initDb() {
   userDataPath = app.getPath('userData');
   dbPath = join(userDataPath, 'music.db');
+  firstRunMarkerPath = join(userDataPath, '.first-run-complete');
   db = new Database(dbPath);
   db.pragma('journal_mode = WAL');
   db.exec(`
@@ -171,7 +173,7 @@ function initDb() {
   ensurePlaylistArtworkColumn();
   
   // Background migration for RAM optimization: move base64 artwork to files.
-  setTimeout(migrateTrackArtwork, 2000);
+  setTimeout(migrateTrackArtwork, 250);
 }
 
 function migrateTrackArtwork() {
@@ -207,7 +209,7 @@ function migrateTrackArtwork() {
     
     // Continue in chunks to avoid blocking the thread too much
     if (tracksWithBase64.length === 1000) {
-      setTimeout(migrateTrackArtwork, 2000);
+      setTimeout(migrateTrackArtwork, 250);
     }
   } catch (err) {
     console.error('Artwork migration error:', err);
@@ -223,6 +225,18 @@ function getSettings(): AppSettings {
 
 function saveSettings(s: AppSettings) {
   db.prepare('INSERT OR REPLACE INTO settings (key, value) VALUES (?, ?)').run('app', JSON.stringify(s));
+}
+
+function consumeFirstRunState() {
+  const isFirstRun = !existsSync(firstRunMarkerPath);
+  if (isFirstRun) {
+    try {
+      writeFileSync(firstRunMarkerPath, String(Date.now()));
+    } catch {
+      // ignore marker write errors
+    }
+  }
+  return isFirstRun;
 }
 
 // ─── Create window ────────────────────────────────────────────────────────────
@@ -322,6 +336,7 @@ ipcMain.on('window:maximize', () => {
 ipcMain.on('window:close', () => mainWindow?.close());
 ipcMain.handle('window:isMaximized', () => mainWindow?.isMaximized() ?? false);
 ipcMain.handle('app:getVersion', () => app.getVersion());
+ipcMain.handle('app:consumeFirstRun', () => consumeFirstRunState());
 ipcMain.handle('updates:getState', () => updaterState);
 ipcMain.handle('updates:check', async () => {
   if (!app.isPackaged) {

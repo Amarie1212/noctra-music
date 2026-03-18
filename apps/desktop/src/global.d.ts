@@ -8,6 +8,7 @@ declare global {
         close: () => void;
         isMaximized: () => Promise<boolean>;
         getVersion: () => Promise<string>;
+        consumeFirstRun: () => Promise<boolean>;
         onMaximizeChange: (cb: (isMaximized: boolean) => void) => () => void;
       };
       dialog: {
