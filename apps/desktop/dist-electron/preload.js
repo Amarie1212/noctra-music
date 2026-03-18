@@ -43,6 +43,7 @@ import_electron.contextBridge.exposeInMainWorld("api", {
     getAll: () => import_electron.ipcRenderer.invoke("library:getAll"),
     addTracks: (tracks) => import_electron.ipcRenderer.invoke("library:addTracks", tracks),
     removeTrack: (id) => import_electron.ipcRenderer.invoke("library:removeTrack", id),
+    clearAll: () => import_electron.ipcRenderer.invoke("library:clearAll"),
     updateTrack: (track) => import_electron.ipcRenderer.invoke("library:updateTrack", track),
     updateArtwork: (id, artworkData) => import_electron.ipcRenderer.invoke("library:updateArtwork", { id, artworkData }),
     setArtworkFromFile: (id, filePath) => import_electron.ipcRenderer.invoke("library:setArtworkFromFile", { id, filePath }),

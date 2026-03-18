@@ -41,6 +41,7 @@ interface LibraryStore {
   addFiles: (paths: string[]) => Promise<void>;
   addFolder: (folderPath: string) => Promise<void>;
   addFolders: (folderPaths: string[]) => Promise<void>;
+  clearAll: () => Promise<void>;
   removeTrack: (id: string) => Promise<void>;
   updateTrack: (track: { id: string; title?: string; artist?: string; album?: string; genre?: string; year?: number; trackNumber?: number }) => Promise<boolean>;
   updateArtwork: (id: string, artworkData: string) => Promise<boolean>;
@@ -121,6 +122,14 @@ export const useLibraryStore = create<LibraryStore>((set, get) => ({
     for (const folderPath of folderPaths) {
       await get().addFolder(folderPath);
     }
+  },
+
+  clearAll: async () => {
+    await window.api.library.clearAll();
+    set({ tracks: [] });
+    usePlaylistStore.setState(state => ({
+      playlists: state.playlists.map(playlist => ({ ...playlist, trackIds: [] })),
+    }));
   },
 
   removeTrack: async (id) => {

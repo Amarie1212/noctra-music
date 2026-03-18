@@ -473,6 +473,13 @@ import_electron.ipcMain.handle("library:removeTrack", (_, id) => {
   db.prepare("DELETE FROM tracks WHERE id = ?").run(id);
   db.prepare("DELETE FROM playlist_tracks WHERE trackId = ?").run(id);
 });
+import_electron.ipcMain.handle("library:clearAll", () => {
+  const clearLibrary = db.transaction(() => {
+    db.prepare("DELETE FROM playlist_tracks").run();
+    db.prepare("DELETE FROM tracks").run();
+  });
+  clearLibrary();
+});
 import_electron.ipcMain.handle("library:updateTrack", (_, track) => {
   const existing = db.prepare("SELECT * FROM tracks WHERE id = ?").get(track.id);
   if (!existing) return false;

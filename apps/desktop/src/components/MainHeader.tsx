@@ -1,8 +1,10 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { EQ_FREQUENCIES, EQ_PRESETS } from '@music/core';
 import { createTranslator } from '../i18n';
-import { useLibraryStore, usePlayerStore, useSettingsStore } from '../store';
+import { useLibraryStore, usePlayerStore, usePlaylistStore, useSettingsStore } from '../store';
 import { CustomSelect } from './CustomSelect';
+import ConfirmDialog from './ConfirmDialog';
+import { clearArtworkCaches } from '../artwork';
 
 const THEME_OPTIONS = [
   { id: 'dark', labelKey: 'darkGlass' },
@@ -58,11 +60,16 @@ const LANGUAGE_OPTIONS = [
   { id: 'ja', labelKey: 'japanese' },
 ] as const;
 
-type SettingsSection = 'theme' | 'language' | 'player' | 'startup' | 'updates' | 'eq';
+type SettingsSection = 'theme' | 'language' | 'player' | 'startup' | 'updates' | 'library' | 'eq';
 
 export default function MainHeader() {
   const settingsBodyRef = useRef<HTMLDivElement | null>(null);
   const addFolders = useLibraryStore(s => s.addFolders);
+  const clearLibrary = useLibraryStore(s => s.clearAll);
+  const tracks = useLibraryStore(s => s.tracks);
+  const libraryTrackCount = useLibraryStore(s => s.tracks.length);
+  const playlists = usePlaylistStore(s => s.playlists);
+  const addTracksToPlaylist = usePlaylistStore(s => s.addTracksToPlaylist);
   const currentTrackId = usePlayerStore(s => s.currentTrackId);
   const isNowPlayingOpen = usePlayerStore(s => s.isNowPlayingOpen);
   const setNowPlayingOpen = usePlayerStore(s => s.setNowPlayingOpen);
@@ -73,6 +80,8 @@ export default function MainHeader() {
   const [settingsOpen, setSettingsOpen] = useState(false);
   const [scanOpen, setScanOpen] = useState(false);
   const [activeSettingsSection, setActiveSettingsSection] = useState<SettingsSection>('theme');
+  const [clearCacheConfirmOpen, setClearCacheConfirmOpen] = useState(false);
+  const [clearLibraryConfirmOpen, setClearLibraryConfirmOpen] = useState(false);
   const [selectedFolders, setSelectedFolders] = useState<string[]>([]);
   const [isScanningFolders, setIsScanningFolders] = useState(false);
   const [isMaximized, setIsMaximized] = useState(false);
@@ -159,6 +168,88 @@ export default function MainHeader() {
     setIsScanningFolders(false);
     setSelectedFolders([]);
     setScanOpen(false);
+  };
+
+  const handleRescan = async () => {
+    if (!selectedFolders.length) return;
+    setIsScanningFolders(true);
+    try {
+      const normalizedFolders = selectedFolders.map(normalizePathForCompare);
+      const selectedTracks = tracks.filter(track => isPathInsideFolders(track.filePath, normalizedFolders));
+      const selectedTracksById = new Map(selectedTracks.map(track => [track.id, track]));
+      const selectedTrackIds = new Set(selectedTracks.map(track => track.id));
+      const filePathToPlaylistIds = new Map<string, string[]>();
+
+      playlists.forEach(playlist => {
+        playlist.trackIds.forEach(trackId => {
+          if (!selectedTrackIds.has(trackId)) return;
+          const track = selectedTracksById.get(trackId);
+          if (!track) return;
+          const key = normalizePathForCompare(track.filePath);
+          const current = filePathToPlaylistIds.get(key);
+          if (current) current.push(playlist.id);
+          else filePathToPlaylistIds.set(key, [playlist.id]);
+        });
+      });
+
+      await clearLibrary();
+      await addFolders(selectedFolders);
+
+      const rescannedTracks = useLibraryStore.getState().tracks;
+      const playlistAssignments = new Map<string, string[]>();
+
+      rescannedTracks.forEach(track => {
+        const playlistIds = filePathToPlaylistIds.get(normalizePathForCompare(track.filePath));
+        if (!playlistIds?.length) return;
+        playlistIds.forEach(playlistId => {
+          const current = playlistAssignments.get(playlistId);
+          if (current) current.push(track.id);
+          else playlistAssignments.set(playlistId, [track.id]);
+        });
+      });
+
+      for (const [playlistId, trackIds] of playlistAssignments) {
+        await addTracksToPlaylist(playlistId, trackIds);
+      }
+
+      setSelectedFolders([]);
+      setScanOpen(false);
+    } finally {
+      setIsScanningFolders(false);
+    }
+  };
+
+  const handleRemoveAll = async () => {
+    setIsScanningFolders(true);
+    try {
+      await clearLibrary();
+      setSelectedFolders([]);
+    } finally {
+      setIsScanningFolders(false);
+    }
+  };
+
+  const handleClearLibraryFromSettings = async () => {
+    setIsScanningFolders(true);
+    try {
+      await clearLibrary();
+      setSelectedFolders([]);
+      setClearLibraryConfirmOpen(false);
+    } finally {
+      setIsScanningFolders(false);
+    }
+  };
+
+  const handleClearCache = () => {
+    try {
+      window.localStorage.removeItem('music.library.scroll-positions');
+      window.localStorage.removeItem('music.perf-debug');
+      clearArtworkCaches();
+    } catch {
+      // Ignore cache reset errors.
+    } finally {
+      setClearCacheConfirmOpen(false);
+    }
   };
 
   const currentThemeLabel = useMemo(() => {
@@ -329,14 +420,21 @@ export default function MainHeader() {
             <div className="playlist-modal-actions">
               <button
                 className="library-action-btn secondary"
-                onClick={() => setSelectedFolders([])}
+                onClick={() => void handleRemoveAll()}
+                disabled={isScanningFolders}
+              >
+                {t('removeAll')}
+              </button>
+              <button
+                className="library-action-btn secondary"
+                onClick={() => void handleRescan()}
                 disabled={!selectedFolders.length || isScanningFolders}
               >
-                {t('clear')}
+                {isScanningFolders ? t('scanning') : t('rescan')}
               </button>
               <button
                 className="library-action-btn"
-                onClick={handleScan}
+                onClick={() => void handleScan()}
                 disabled={!selectedFolders.length || isScanningFolders}
               >
                 {isScanningFolders ? t('scanning') : t('scanSelected')}
@@ -365,6 +463,7 @@ export default function MainHeader() {
                   { id: 'player', label: t('playerModel') },
                   { id: 'startup', label: t('startupTab') },
                   { id: 'updates', label: t('checkForUpdate') },
+                  { id: 'library', label: t('library') },
                   { id: 'eq', label: t('soundEq') },
                 ].map(section => (
                   <button
@@ -501,6 +600,43 @@ export default function MainHeader() {
               </section>
               )}
 
+              {activeSettingsSection === 'library' && (
+                <section className="settings-card">
+                <h3>{t('library')}</h3>
+                <div className="settings-danger-card">
+                  <div className="settings-danger-copy">
+                    <strong>{t('clearCache')}</strong>
+                    <p>{t('clearCacheDesc')}</p>
+                  </div>
+                  <button
+                    type="button"
+                    className="library-action-btn secondary"
+                    onClick={() => setClearCacheConfirmOpen(true)}
+                  >
+                    {t('clearCache')}
+                  </button>
+                </div>
+
+                <div className="settings-danger-card">
+                  <div className="settings-danger-copy">
+                    <strong>{t('clearLibrary')}</strong>
+                    <p>{t('clearLibraryDesc')}</p>
+                    <span className="settings-save-note">
+                      {libraryTrackCount} {t('songUnit')}
+                    </span>
+                  </div>
+                  <button
+                    type="button"
+                    className="library-action-btn danger"
+                    onClick={() => setClearLibraryConfirmOpen(true)}
+                    disabled={!libraryTrackCount || isScanningFolders}
+                  >
+                    {t('clearLibrary')}
+                  </button>
+                </div>
+              </section>
+              )}
+
               {activeSettingsSection === 'eq' && (
                 <section className="settings-card">
                 <h3>{t('soundEq')}</h3>
@@ -579,8 +715,40 @@ export default function MainHeader() {
           </div>
         </div>
       )}
+
+      {clearLibraryConfirmOpen && (
+        <ConfirmDialog
+          title={t('clearLibrary')}
+          message={t('clearLibraryWarn')}
+          confirmLabel={t('clearLibrary')}
+          cancelLabel={t('cancel')}
+          destructive
+          onConfirm={handleClearLibraryFromSettings}
+          onCancel={() => setClearLibraryConfirmOpen(false)}
+        />
+      )}
+
+      {clearCacheConfirmOpen && (
+        <ConfirmDialog
+          title={t('clearCache')}
+          message={t('clearCacheWarn')}
+          confirmLabel={t('clearCache')}
+          cancelLabel={t('cancel')}
+          onConfirm={handleClearCache}
+          onCancel={() => setClearCacheConfirmOpen(false)}
+        />
+      )}
     </>
   );
+}
+
+function normalizePathForCompare(value: string) {
+  return value.replace(/[\\/]+/g, '\\').replace(/[\\]+$/, '').toLowerCase();
+}
+
+function isPathInsideFolders(filePath: string, normalizedFolders: string[]) {
+  const normalizedFilePath = normalizePathForCompare(filePath);
+  return normalizedFolders.some(folder => normalizedFilePath === folder || normalizedFilePath.startsWith(`${folder}\\`));
 }
 
 function normalizeFolderSelection(value: unknown): string[] {

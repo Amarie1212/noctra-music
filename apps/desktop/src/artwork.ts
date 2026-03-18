@@ -4,6 +4,10 @@ const mediaUrlCache = new Map<string, string>();
 const trackArtworkSrcCache = new WeakMap<Track, string | undefined>();
 const playlistArtworkSrcCache = new WeakMap<Playlist, string | undefined>();
 
+export function clearArtworkCaches() {
+  mediaUrlCache.clear();
+}
+
 export function toMediaUrl(filePath: string) {
   const cached = mediaUrlCache.get(filePath);
   if (cached) return cached;

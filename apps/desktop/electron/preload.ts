@@ -47,6 +47,7 @@ contextBridge.exposeInMainWorld('api', {
     getAll: () => ipcRenderer.invoke('library:getAll'),
     addTracks: (tracks: any[]) => ipcRenderer.invoke('library:addTracks', tracks),
     removeTrack: (id: string) => ipcRenderer.invoke('library:removeTrack', id),
+    clearAll: () => ipcRenderer.invoke('library:clearAll'),
     updateTrack: (track: { id: string; title?: string; artist?: string; album?: string; genre?: string; year?: number; trackNumber?: number }) => ipcRenderer.invoke('library:updateTrack', track),
     updateArtwork: (id: string, artworkData: string) => ipcRenderer.invoke('library:updateArtwork', { id, artworkData }),
     setArtworkFromFile: (id: string, filePath: string) => ipcRenderer.invoke('library:setArtworkFromFile', { id, filePath }),

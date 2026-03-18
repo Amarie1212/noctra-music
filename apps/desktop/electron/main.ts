@@ -527,6 +527,14 @@ ipcMain.handle('library:removeTrack', (_, id: string) => {
   db.prepare('DELETE FROM playlist_tracks WHERE trackId = ?').run(id);
 });
 
+ipcMain.handle('library:clearAll', () => {
+  const clearLibrary = db.transaction(() => {
+    db.prepare('DELETE FROM playlist_tracks').run();
+    db.prepare('DELETE FROM tracks').run();
+  });
+  clearLibrary();
+});
+
 ipcMain.handle('library:updateTrack', (_, track: { id: string; title?: string; artist?: string; album?: string; genre?: string; year?: number; trackNumber?: number }) => {
   const existing = db.prepare('SELECT * FROM tracks WHERE id = ?').get(track.id) as Track | undefined;
   if (!existing) return false;

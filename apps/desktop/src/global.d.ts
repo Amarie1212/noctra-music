@@ -32,6 +32,7 @@ declare global {
         getAll: () => Promise<import('@music/core').Track[]>;
         addTracks: (tracks: import('@music/core').Track[]) => Promise<void>;
         removeTrack: (id: string) => Promise<void>;
+        clearAll: () => Promise<void>;
         updateTrack: (track: { id: string; title?: string; artist?: string; album?: string; genre?: string; year?: number; trackNumber?: number }) => Promise<boolean>;
         updateArtwork: (id: string, artworkData: string) => Promise<boolean>;
         setArtworkFromFile: (id: string, filePath: string) => Promise<string | null>;
