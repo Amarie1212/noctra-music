@@ -1,13 +1,13 @@
 {
   "name": "desktop",
-  "version": "0.0.0-a1",
+  "version": "0.0.0-a2",
   "private": true,
   "main": "dist-electron/main.js",
   "build": {
     "appId": "com.noctra.app",
     "productName": "NOCTRA",
     "npmRebuild": false,
-    "compression": "store",
+    "compression": "normal",
     "files": [
       "dist-renderer/**/*",
       "dist-electron/**/*",
@@ -29,6 +29,7 @@
       "allowElevation": true,
       "runAfterFinish": true,
       "deleteAppDataOnUninstall": true,
+      "differentialPackage": false,
       "artifactName": "${productName} Setup.${ext}"
     }
   },
