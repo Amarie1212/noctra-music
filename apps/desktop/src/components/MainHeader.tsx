@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import { EQ_FREQUENCIES, EQ_PRESETS } from '@music/core';
 import { createTranslator } from '../i18n';
 import { useLibraryStore, usePlayerStore, useSettingsStore } from '../store';
@@ -58,7 +58,10 @@ const LANGUAGE_OPTIONS = [
   { id: 'ja', labelKey: 'japanese' },
 ] as const;
 
+type SettingsSection = 'theme' | 'language' | 'player' | 'startup' | 'updates' | 'eq';
+
 export default function MainHeader() {
+  const settingsBodyRef = useRef<HTMLDivElement | null>(null);
   const addFolders = useLibraryStore(s => s.addFolders);
   const currentTrackId = usePlayerStore(s => s.currentTrackId);
   const isNowPlayingOpen = usePlayerStore(s => s.isNowPlayingOpen);
@@ -69,6 +72,7 @@ export default function MainHeader() {
   const [time, setTime] = useState(new Date());
   const [settingsOpen, setSettingsOpen] = useState(false);
   const [scanOpen, setScanOpen] = useState(false);
+  const [activeSettingsSection, setActiveSettingsSection] = useState<SettingsSection>('theme');
   const [selectedFolders, setSelectedFolders] = useState<string[]>([]);
   const [isScanningFolders, setIsScanningFolders] = useState(false);
   const [isMaximized, setIsMaximized] = useState(false);
@@ -90,6 +94,10 @@ export default function MainHeader() {
     const timer = setInterval(() => setTime(new Date()), 1000);
     return () => clearInterval(timer);
   }, []);
+
+  useEffect(() => {
+    settingsBodyRef.current?.scrollTo({ top: 0, behavior: 'auto' });
+  }, [activeSettingsSection]);
 
   useEffect(() => {
     let unsub: null | (() => void) = null;
@@ -157,9 +165,6 @@ export default function MainHeader() {
     const option = THEME_OPTIONS.find(theme => theme.id === settings.theme);
     return option ? t(option.labelKey) : t('theme');
   }, [settings.theme, t]);
-
-  const selectedLightTheme = LIGHT_THEME_OPTIONS.some(theme => theme.id === settings.theme) ? settings.theme : '';
-  const selectedDarkTheme = DARK_THEME_OPTIONS.some(theme => theme.id === settings.theme) ? settings.theme : '';
 
   const currentLayoutLabel = useMemo(() => {
     const option = PLAYER_LAYOUTS.find(layout => layout.id === settings.playerLayout);
@@ -376,40 +381,73 @@ export default function MainHeader() {
               <button className="library-back-btn" onClick={() => setSettingsOpen(false)}>{t('close')}</button>
             </div>
 
-            <div className="settings-modal-body">
-              <section className="settings-card">
-                <h3>{t('theme')}</h3>
-                <div className="theme-dropdown-grid">
-                  <label className="settings-select-group">
-                    <span className="settings-select-label">Light Themes</span>
-                    <CustomSelect
-                      value={selectedLightTheme}
-                      onChange={val => saveSettings({ theme: val as never })}
-                      options={LIGHT_THEME_OPTIONS.map(theme => ({ id: theme.id, label: t(theme.labelKey) }))}
-                      triggerClassName="settings-select"
-                      placeholder="Choose light theme"
-                    />
-                  </label>
-                  <label className="settings-select-group">
-                    <span className="settings-select-label">Dark Themes</span>
-                    <CustomSelect
-                      value={selectedDarkTheme}
-                      onChange={val => saveSettings({ theme: val as never })}
-                      options={DARK_THEME_OPTIONS.map(theme => ({ id: theme.id, label: t(theme.labelKey) }))}
-                      triggerClassName="settings-select"
-                      placeholder="Choose dark theme"
-                    />
-                  </label>
+            <div className="settings-modal-shell">
+              <aside className="settings-sidebar">
+                {[
+                  { id: 'theme', label: t('theme') },
+                  { id: 'language', label: t('language') },
+                  { id: 'player', label: t('playerModel') },
+                  { id: 'startup', label: t('startupTab') },
+                  { id: 'updates', label: t('checkForUpdate') },
+                  { id: 'eq', label: t('soundEq') },
+                ].map(section => (
                   <button
-                    className={`theme-chip theme-system-chip ${settings.theme === 'system' ? 'active' : ''}`}
-                    onClick={() => saveSettings({ theme: 'system' })}
+                    key={section.id}
+                    type="button"
+                    className={`settings-sidebar-link ${activeSettingsSection === section.id ? 'active' : ''}`}
+                    onClick={() => setActiveSettingsSection(section.id as SettingsSection)}
                   >
-                    {t('followSystem')}
+                    {section.label}
                   </button>
+                ))}
+              </aside>
+
+              <div ref={settingsBodyRef} className="settings-modal-body">
+              {activeSettingsSection === 'theme' && (
+                <section className="settings-card">
+                <h3>{t('theme')}</h3>
+                <div className="settings-theme-sections">
+                  <div className="settings-theme-group">
+                    <span className="settings-select-label">Light Themes</span>
+                    <div className="settings-option-grid">
+                      {LIGHT_THEME_OPTIONS.map(theme => (
+                        <button
+                          key={theme.id}
+                          type="button"
+                          className={`theme-chip theme-option-chip ${settings.theme === theme.id ? 'active' : ''}`}
+                          data-theme-option={theme.id}
+                          onClick={() => saveSettings({ theme: theme.id as never })}
+                        >
+                          <span className={`theme-chip-swatch ${theme.id}`} aria-hidden="true" />
+                          <span>{t(theme.labelKey)}</span>
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+
+                  <div className="settings-theme-group">
+                    <span className="settings-select-label">Dark Themes</span>
+                    <div className="settings-option-grid">
+                      {DARK_THEME_OPTIONS.map(theme => (
+                        <button
+                          key={theme.id}
+                          type="button"
+                          className={`theme-chip theme-option-chip ${settings.theme === theme.id ? 'active' : ''}`}
+                          data-theme-option={theme.id}
+                          onClick={() => saveSettings({ theme: theme.id as never })}
+                        >
+                          <span className={`theme-chip-swatch ${theme.id}`} aria-hidden="true" />
+                          <span>{t(theme.labelKey)}</span>
+                        </button>
+                      ))}
+                    </div>
+                  </div>
                 </div>
               </section>
+              )}
 
-              <section className="settings-card">
+              {activeSettingsSection === 'language' && (
+                <section className="settings-card">
                 <h3>{t('language')}</h3>
                 <div className="theme-grid">
                   {LANGUAGE_OPTIONS.map(language => (
@@ -423,8 +461,10 @@ export default function MainHeader() {
                   ))}
                 </div>
               </section>
+              )}
 
-              <section className="settings-card">
+              {activeSettingsSection === 'player' && (
+                <section className="settings-card">
                 <h3>{t('playerModel')}</h3>
                 <div className="layout-grid">
                   {PLAYER_LAYOUTS.map(layout => (
@@ -439,8 +479,10 @@ export default function MainHeader() {
                   ))}
                 </div>
               </section>
+              )}
 
-              <section className="settings-card">
+              {activeSettingsSection === 'startup' && (
+                <section className="settings-card">
                 <h3>{t('startupTab')}</h3>
                 <div className="settings-inline-row">
                   <CustomSelect
@@ -458,8 +500,10 @@ export default function MainHeader() {
                 </div>
                 <div className="settings-save-note">{t('autoSaveNote')}</div>
               </section>
+              )}
 
-              <section className="settings-card">
+              {activeSettingsSection === 'updates' && (
+                <section className="settings-card">
                 <h3>{t('checkForUpdate')}</h3>
                 <div className="settings-update-row">
                   <div className="settings-update-meta">
@@ -479,8 +523,10 @@ export default function MainHeader() {
                   </button>
                 </div>
               </section>
+              )}
 
-              <section className="settings-card">
+              {activeSettingsSection === 'eq' && (
+                <section className="settings-card">
                 <h3>{t('soundEq')}</h3>
                 <div className="settings-inline-row">
                   <label className="toggle-row">
@@ -551,6 +597,8 @@ export default function MainHeader() {
                   </label>
                 </div>
               </section>
+              )}
+              </div>
             </div>
           </div>
         </div>

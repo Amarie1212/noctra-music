@@ -196,7 +196,7 @@ export default function LibraryPane() {
 
   const [isHeaderCollapsed, setIsHeaderCollapsed] = useState(false);
   const [isDraggingTabs, setIsDraggingTabs] = useState(false);
-  const [hasContentScroll, setHasContentScroll] = useState(false);
+  const [showContentScrollbar, setShowContentScrollbar] = useState(false);
   const dragStartRef = useRef({ x: 0, scrollLeft: 0 });
   const hasMovedRef = useRef(false);
   const tabsDragResetRafRef = useRef<number | null>(null);
@@ -424,30 +424,45 @@ useEffect(() => {
 
   useLayoutEffect(() => {
     const scrollEl = contentRef.current;
-    const contentEl = scrollEl?.firstElementChild as HTMLElement | null;
+    const contentEl = scrollEl?.querySelector('.library-content-swap') as HTMLElement | null;
     if (!scrollEl) return;
 
-    const updateScrollableState = () => {
-      const nextHasScroll = scrollEl.scrollHeight - scrollEl.clientHeight > 1;
-      setHasContentScroll(current => (current === nextHasScroll ? current : nextHasScroll));
+    let frameId: number | null = null;
+    const updateOverflowState = () => {
+      const overflowAmount = scrollEl.scrollHeight - scrollEl.clientHeight;
+      const nextValue = overflowAmount > 12;
+      setShowContentScrollbar(current => (current === nextValue ? current : nextValue));
     };
 
-    updateScrollableState();
+    const scheduleUpdate = () => {
+      if (frameId !== null) window.cancelAnimationFrame(frameId);
+      frameId = window.requestAnimationFrame(() => {
+        frameId = null;
+        updateOverflowState();
+      });
+    };
 
-    const resizeObserver = new ResizeObserver(() => updateScrollableState());
+    scheduleUpdate();
+
+    const resizeObserver = new ResizeObserver(scheduleUpdate);
     resizeObserver.observe(scrollEl);
     if (contentEl) resizeObserver.observe(contentEl);
 
-    return () => resizeObserver.disconnect();
+    return () => {
+      resizeObserver.disconnect();
+      if (frameId !== null) window.cancelAnimationFrame(frameId);
+    };
   }, [
     libraryTab,
     selectedGroupId,
     filteredSongs.length,
-    activeGroups.length,
     filteredPlaylists.length,
+    activeGroups.length,
+    playlistDetailSort,
+    sort,
     viewMode,
-    isDetailOpen,
     songGridLimit,
+    isDetailOpen,
   ]);
 
   useEffect(() => {
@@ -1106,7 +1121,7 @@ useEffect(() => {
         {selectedPlaylistView && renderSelectedPlaylistHeader()}
         <div
           ref={contentRef}
-          className={`library-content ${hasContentScroll ? 'has-scrollbar' : 'no-scrollbar'}`}
+          className={`library-content ${showContentScrollbar ? 'has-scrollbar' : 'no-scrollbar'}`}
         >
           <div className="library-content-swap">
             {libraryTab === 'songs' && renderSongs()}
