@@ -34,6 +34,7 @@
     }
   },
   "scripts": {
+    "clean:dist": "powershell -NoProfile -Command \"Remove-Item -Recurse -Force dist, dist-electron, dist-renderer -ErrorAction SilentlyContinue\"",
     "dev:electron": "tsup --watch",
     "dev:vite": "vite",
     "dev": "concurrently \"pnpm run dev:vite\" \"pnpm run dev:electron\" \"npx wait-on http://127.0.0.1:5173 && electron .\"",
@@ -41,8 +42,8 @@
     "build:renderer": "vite build",
     "build:bundle": "concurrently \"pnpm run build:electron\" \"pnpm run build:renderer\"",
     "build:installer": "pnpm run build:bundle && electron-builder --publish never",
-    "build:local": "pnpm run build:bundle && electron-builder --publish never",
-    "build:publish": "pnpm run build:bundle && electron-builder --publish always",
+    "build:local": "pnpm run clean:dist && pnpm run build:bundle && electron-builder --publish never",
+    "build:publish": "pnpm run clean:dist && pnpm run build:bundle && electron-builder --publish always",
     "release:github": "pnpm run build:publish",
     "build": "pnpm run build:local",
     "preview": "vite preview"
