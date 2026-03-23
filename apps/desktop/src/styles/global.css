@@ -31,13 +31,21 @@
   --app-button-fg-hover: #ffffff;
   --app-button-border: color-mix(in srgb, var(--accent) 12%, var(--glass-border));
   --app-button-shadow:
-    inset 0 1px 0 rgba(255, 255, 255, 0.1),
-    0 14px 26px -16px color-mix(in srgb, black 42%, transparent),
-    0 6px 12px -8px color-mix(in srgb, black 28%, transparent);
+    inset 0 1px 0 rgba(255, 255, 255, 0.08),
+    0 1px 2px rgba(0, 0, 0, 0.06),
+    0 6px 12px -10px rgba(0, 0, 0, 0.12);
   --app-button-shadow-hover:
-    inset 0 1px 0 rgba(255, 255, 255, 0.12),
-    0 18px 30px -16px color-mix(in srgb, black 46%, transparent),
-    0 8px 14px -8px color-mix(in srgb, var(--accent) 16%, transparent);
+    inset 0 1px 0 rgba(255, 255, 255, 0.1),
+    0 1px 2px rgba(0, 0, 0, 0.07),
+    0 8px 14px -10px color-mix(in srgb, black 16%, transparent);
+  --app-button-shadow-compact:
+    inset 0 1px 0 rgba(255, 255, 255, 0.08),
+    0 1px 2px rgba(0, 0, 0, 0.05),
+    0 4px 8px -8px rgba(0, 0, 0, 0.1);
+  --app-button-shadow-compact-hover:
+    inset 0 1px 0 rgba(255, 255, 255, 0.1),
+    0 1px 2px rgba(0, 0, 0, 0.06),
+    0 6px 10px -8px color-mix(in srgb, black 14%, transparent);
   --app-field-bg: color-mix(in srgb, var(--surface-color) 84%, var(--panel-bg));
   --app-field-bg-hover: color-mix(in srgb, var(--surface-color) 76%, var(--accent) 6%);
   --app-field-border: color-mix(in srgb, var(--accent) 10%, var(--glass-border));
@@ -50,16 +58,27 @@
     inset 0 1px 0 rgba(255, 255, 255, 0.1),
     0 14px 28px -18px color-mix(in srgb, black 28%, transparent),
     0 0 0 3px color-mix(in srgb, var(--accent) 14%, transparent);
+  --app-summary-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.08),
+    0 8px 18px -16px color-mix(in srgb, black 20%, transparent),
+    0 2px 6px -5px color-mix(in srgb, black 12%, transparent);
   --shadow-sm: 0 4px 12px rgba(0, 0, 0, 0.2);
   --shadow-lg: 0 12px 32px rgba(0, 0, 0, 0.4);
   --radius-lg: 24px;
   --radius-md: 16px;
   /* Slightly slower global motion to feel smoother without adding heavy effects. */
   --transition: opacity 0.32s var(--ease-smooth), transform 0.32s var(--ease-smooth), background-color 0.2s var(--ease-smooth), border-color 0.2s var(--ease-smooth);
-  --ease-smooth: cubic-bezier(0.33, 1, 0.68, 1);
-  --motion-fast: 180ms;
-  --motion-med: 300ms;
-  --motion-slow: 560ms;
+  --ease-smooth: cubic-bezier(0.22, 1, 0.36, 1);
+  --ease-pop: cubic-bezier(0.2, 0.9, 0.24, 1.06);
+  --motion-fast: 183ms;
+  --motion-med: 250ms;
+  --motion-slow: 500ms;
+  --motion-tab: 217ms;
+  --motion-pop: 183ms;
+  --motion-pop-fast: 150ms;
+  --button-hover-lift: -1px;
+  --button-hover-scale: 1.016;
+  --button-active-scale: 0.985;
   --hover-transition:
     transform var(--motion-fast) var(--ease-smooth),
     background-color var(--motion-fast) var(--ease-smooth),
@@ -99,13 +118,21 @@
   --app-button-fg-hover: color-mix(in srgb, var(--text-primary) 84%, var(--accent) 16%);
   --app-button-border: color-mix(in srgb, var(--accent) 14%, var(--glass-border));
   --app-button-shadow:
-    inset 0 1px 0 rgba(255, 255, 255, 0.7),
-    0 12px 24px -18px color-mix(in srgb, black 18%, transparent),
-    0 4px 10px -8px color-mix(in srgb, black 10%, transparent);
+    inset 0 1px 0 rgba(255, 255, 255, 0.72),
+    0 1px 2px rgba(18, 38, 63, 0.06),
+    0 6px 12px -10px rgba(18, 38, 63, 0.1);
   --app-button-shadow-hover:
+    inset 0 1px 0 rgba(255, 255, 255, 0.78),
+    0 1px 2px rgba(18, 38, 63, 0.07),
+    0 8px 14px -10px rgba(18, 38, 63, 0.12);
+  --app-button-shadow-compact:
+    inset 0 1px 0 rgba(255, 255, 255, 0.72),
+    0 1px 2px rgba(18, 38, 63, 0.05),
+    0 4px 8px -8px rgba(18, 38, 63, 0.08);
+  --app-button-shadow-compact-hover:
     inset 0 1px 0 rgba(255, 255, 255, 0.76),
-    0 14px 28px -18px color-mix(in srgb, black 22%, transparent),
-    0 6px 12px -8px color-mix(in srgb, var(--accent) 14%, transparent);
+    0 1px 2px rgba(18, 38, 63, 0.06),
+    0 6px 10px -8px rgba(18, 38, 63, 0.1);
   --app-field-bg: color-mix(in srgb, var(--surface-color) 92%, var(--panel-bg));
   --app-field-bg-hover: color-mix(in srgb, var(--surface-color) 82%, var(--accent) 8%);
   --app-field-border: color-mix(in srgb, var(--accent) 12%, var(--glass-border));
@@ -118,6 +145,10 @@
     inset 0 1px 0 rgba(255, 255, 255, 0.76),
     0 12px 24px -18px color-mix(in srgb, black 16%, transparent),
     0 0 0 3px color-mix(in srgb, var(--accent) 12%, transparent);
+  --app-summary-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.68),
+    0 8px 18px -16px color-mix(in srgb, black 10%, transparent),
+    0 2px 6px -5px color-mix(in srgb, black 6%, transparent);
 }
 
 :root[data-theme='beach'] {
@@ -367,7 +398,11 @@
 
 body {
   font-family: "Segoe UI", "Helvetica Neue", Arial, sans-serif;
-  background: var(--bg-color);
+  background:
+    radial-gradient(circle at 50% 45%, rgba(46, 80, 168, 0.2), transparent 24%),
+    radial-gradient(circle at 20% 20%, rgba(255, 255, 255, 0.08), transparent 18%),
+    radial-gradient(circle at 80% 72%, rgba(58, 110, 201, 0.16), transparent 26%),
+    linear-gradient(180deg, #02030a 0%, #04050d 35%, #000000 100%);
   color: var(--text-primary);
   overflow: hidden;
   height: 100vh;
@@ -433,6 +468,107 @@ body {
   height: 100%;
 }
 
+.startup-splash {
+  position: absolute;
+  inset: 0;
+  z-index: 120;
+  display: grid;
+  place-items: center;
+  overflow: hidden;
+  background:
+    radial-gradient(circle at 50% 45%, rgba(46, 80, 168, 0.2), transparent 24%),
+    radial-gradient(circle at 20% 20%, rgba(255, 255, 255, 0.08), transparent 18%),
+    radial-gradient(circle at 80% 72%, rgba(58, 110, 201, 0.16), transparent 26%),
+    linear-gradient(180deg, #02030a 0%, #04050d 35%, #000000 100%);
+  transition: opacity 0.7s ease, visibility 0.7s ease, transform 0.7s ease;
+}
+
+.startup-splash.visible {
+  opacity: 1;
+  visibility: visible;
+  transform: scale(1);
+}
+
+.startup-splash.hidden {
+  opacity: 0;
+  visibility: hidden;
+  transform: scale(1.035);
+  pointer-events: none;
+}
+
+.startup-splash-stars,
+.startup-splash-nebula {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+}
+
+.startup-splash-nebula {
+  background:
+    radial-gradient(circle at 34% 40%, rgba(78, 120, 255, 0.16), transparent 26%),
+    radial-gradient(circle at 62% 58%, rgba(255, 255, 255, 0.06), transparent 16%),
+    radial-gradient(circle at 74% 34%, rgba(76, 133, 255, 0.12), transparent 20%);
+  filter: blur(24px);
+  animation: splash-nebula-drift 10s ease-in-out infinite alternate;
+}
+
+.startup-star {
+  position: absolute;
+  left: var(--star-left);
+  top: var(--star-top);
+  width: var(--star-size);
+  height: var(--star-size);
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.95);
+  box-shadow:
+    0 0 6px rgba(255, 255, 255, 0.7),
+    0 0 14px rgba(93, 132, 255, 0.28);
+  opacity: 0.35;
+  animation: splash-star-twinkle var(--star-duration) ease-in-out infinite;
+  animation-delay: var(--star-delay);
+}
+
+.startup-splash-center {
+  position: relative;
+  z-index: 1;
+  display: grid;
+  place-items: center;
+  gap: 14px;
+}
+
+.startup-logo-halo {
+  position: absolute;
+  width: 170px;
+  height: 170px;
+  border-radius: 999px;
+  background:
+    radial-gradient(circle, rgba(114, 154, 255, 0.3) 0%, rgba(114, 154, 255, 0.12) 34%, transparent 72%);
+  filter: blur(10px);
+  animation: splash-logo-halo 3.2s ease-in-out infinite;
+}
+
+.startup-logo {
+  position: relative;
+  z-index: 1;
+  width: clamp(92px, 11vw, 124px);
+  height: auto;
+  object-fit: contain;
+  filter:
+    drop-shadow(0 0 18px rgba(255, 255, 255, 0.2))
+    drop-shadow(0 0 30px rgba(102, 147, 255, 0.26));
+  animation: splash-logo-float 2.8s ease-in-out infinite;
+}
+
+.startup-splash-title {
+  position: relative;
+  z-index: 1;
+  font-size: 0.9rem;
+  letter-spacing: 0.5rem;
+  text-indent: 0.5rem;
+  color: rgba(235, 241, 255, 0.82);
+  text-transform: uppercase;
+}
+
 .app-root {
   --app-edge-padding: clamp(18px, 2.8vw, 26px);
   display: flex;
@@ -443,6 +579,29 @@ body {
   background: var(--panel-bg);
   position: relative;
   overflow: hidden;
+}
+
+.app-root.startup-app-hidden {
+  opacity: 0;
+  visibility: hidden;
+}
+
+.app-root.startup-app-visible {
+  opacity: 1;
+  visibility: visible;
+}
+
+.startup-dashboard-intro .main-header,
+.startup-dashboard-intro .app-container {
+  animation: dashboard-enter 0.9s cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+
+.startup-dashboard-intro .main-header {
+  animation-delay: 0.04s;
+}
+
+.startup-dashboard-intro .app-container {
+  animation-delay: 0.12s;
 }
 
 .app-drag-region {
@@ -468,6 +627,57 @@ body {
   pointer-events: none;
 }
 
+@keyframes splash-star-twinkle {
+  0%, 100% {
+    opacity: 0.28;
+    transform: scale(0.92);
+  }
+  50% {
+    opacity: 1;
+    transform: scale(1.4);
+  }
+}
+
+@keyframes splash-logo-float {
+  0%, 100% {
+    transform: translateY(0) scale(0.98);
+  }
+  50% {
+    transform: translateY(-8px) scale(1.03);
+  }
+}
+
+@keyframes splash-logo-halo {
+  0%, 100% {
+    opacity: 0.58;
+    transform: scale(0.94);
+  }
+  50% {
+    opacity: 0.95;
+    transform: scale(1.08);
+  }
+}
+
+@keyframes splash-nebula-drift {
+  0% {
+    transform: translate3d(-1.5%, -1%, 0) scale(1);
+  }
+  100% {
+    transform: translate3d(1.5%, 1%, 0) scale(1.04);
+  }
+}
+
+@keyframes dashboard-enter {
+  0% {
+    opacity: 0;
+    transform: translateY(12px) scale(0.992);
+  }
+  100% {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
 button,
 .custom-select-trigger {
   transition:
@@ -477,6 +687,10 @@ button,
     border-color var(--motion-fast) var(--ease-smooth),
     box-shadow var(--motion-fast) var(--ease-smooth),
     opacity var(--motion-fast) var(--ease-smooth);
+  box-shadow: var(--app-button-shadow);
+  backface-visibility: hidden;
+  transform: translateZ(0);
+  will-change: transform, box-shadow;
 }
 
 @media (max-height: 720px) {
@@ -585,11 +799,12 @@ button,
   cursor: pointer;
   transition: var(--transition);
   backdrop-filter: blur(10px);
+  box-shadow: var(--app-button-shadow);
 }
 
 .btn-ghost:hover {
   background: var(--surface-light);
-  transform: translateY(-1px) scale(1.04);
+  box-shadow: var(--app-button-shadow-hover);
 }
 
 /* ─── Main Layout ──────────────────────────────────────────────────────────── */
@@ -1285,18 +1500,20 @@ button,
   background: var(--app-button-bg-hover);
   color: var(--app-button-fg-hover);
   box-shadow: var(--app-button-shadow-hover);
-  transform: translateY(-1px) scale(1.04);
+  transform: translateY(var(--button-hover-lift)) scale(var(--button-hover-scale));
 }
 
 .btn-box:active {
   box-shadow: 0 4px 12px color-mix(in srgb, var(--panel-bg) 82%, transparent);
-  transform: scale(0.97);
+  transform: translateY(0) scale(var(--button-active-scale));
 }
 
 .btn-box.active {
   background: var(--accent);
   color: #ffffff;
-  box-shadow: 0 4px 15px var(--accent-glow);
+  box-shadow:
+    var(--app-button-shadow-hover),
+    0 0 0 1px color-mix(in srgb, var(--accent) 16%, transparent);
   border-color: color-mix(in srgb, var(--accent) 64%, white);
 }
 
@@ -1316,25 +1533,22 @@ button,
   transition: var(--hover-transition);
   font-size: 2rem;
   box-shadow:
-    0 38px 68px -14px rgba(22, 28, 40, 0.42),
-    0 18px 32px -12px rgba(22, 28, 40, 0.24),
-    0 8px 14px -8px rgba(22, 28, 40, 0.14),
-    0 0 0 1px color-mix(in srgb, var(--surface-color) 16%, var(--control-border)),
-    inset 0 1px 0 color-mix(in srgb, white 12%, transparent);
+    var(--app-button-shadow),
+    0 0 0 1px color-mix(in srgb, var(--surface-color) 16%, var(--control-border));
   margin: 0 6px;
 }
 
 .play-btn-circle:hover {
   background: color-mix(in srgb, var(--accent) 12%, var(--control-bg));
   box-shadow:
-    0 42px 76px -14px rgba(22, 28, 40, 0.44),
-    0 18px 30px -12px color-mix(in srgb, var(--accent-glow) 40%, transparent),
-    0 8px 14px -8px rgba(22, 28, 40, 0.16),
-    0 0 0 1px color-mix(in srgb, var(--surface-color) 22%, var(--accent));
+    var(--app-button-shadow-hover),
+    0 0 0 1px color-mix(in srgb, var(--surface-color) 20%, var(--accent));
+  transform: translateY(var(--button-hover-lift)) scale(var(--button-hover-scale));
 }
 
 .play-btn-circle:active {
-  box-shadow: 0 6px 16px color-mix(in srgb, var(--panel-bg) 32%, transparent);
+  box-shadow: var(--app-button-shadow);
+  transform: translateY(0) scale(var(--button-active-scale));
 }
 
 .skip-btn {
@@ -1740,7 +1954,7 @@ button,
   color: var(--app-button-fg-hover);
   background: var(--app-button-bg-hover);
   box-shadow: var(--app-button-shadow-hover);
-  transform: scale(1.05);
+  transform: translateY(var(--button-hover-lift)) scale(var(--button-hover-scale));
 }
 
 .btn-view.active {
@@ -1748,7 +1962,7 @@ button,
   background: color-mix(in srgb, var(--accent) 18%, var(--app-button-bg-hover));
   box-shadow:
     var(--app-button-shadow-hover),
-    0 0 0 1px color-mix(in srgb, var(--accent) 30%, transparent);
+    0 0 0 1px color-mix(in srgb, var(--accent) 16%, transparent);
 }
 
 .tab-item {
@@ -1760,7 +1974,10 @@ button,
   align-items: center;
   min-height: 28px;
   padding: 2px 0;
-  transition: color 0.15s ease;
+  transition:
+    color 0.18s ease,
+    transform 0.24s var(--ease-smooth),
+    letter-spacing 0.24s var(--ease-smooth);
   white-space: nowrap;
   flex-shrink: 0; /* Never squash tabs */
   line-height: 1;
@@ -1784,11 +2001,14 @@ button,
 
 .tab-item:hover {
   color: var(--text-primary);
+  transform: translateX(2px);
 }
 
 .tab-item.active {
   color: var(--text-primary);
   font-weight: 600;
+  letter-spacing: 0.01em;
+  transform: translateX(2px);
 }
 
 .tab-item.active::after {
@@ -1838,12 +2058,15 @@ button,
   font-size: 18px;
   transition: var(--hover-transition);
   flex-shrink: 0;
+  box-shadow: var(--app-button-shadow);
+  backdrop-filter: blur(12px) saturate(120%);
 }
 
 .search-clear-btn:hover {
   background: color-mix(in srgb, var(--accent) 14%, var(--surface-light));
   color: var(--text-primary);
-  transform: scale(1.04);
+  box-shadow: var(--app-button-shadow-hover);
+  transform: translateY(var(--button-hover-lift)) scale(var(--button-hover-scale));
 }
 
 .search-bar-container > span:first-child {
@@ -1931,23 +2154,38 @@ button,
   gap: clamp(8px, 1.1vh, 14px);
   min-height: 0;
   flex: 1;
-  will-change: transform, opacity;
+  will-change: auto;
   container-type: inline-size;
   contain: layout;
   /* Removed transition: gap as it is expensive */
 }
 
 .library-swap-shell.swap-run {
-  animation: library-shell-swap 300ms var(--ease-smooth) both;
+  animation: none;
+}
+
+.library-swap-shell.swap-run .library-summary-bar,
+.library-swap-shell.swap-run .library-detail-header,
+.library-swap-shell.swap-run .library-content {
+  animation: library-content-swap-sideways var(--motion-tab) var(--ease-smooth) both;
+  will-change: transform, opacity;
+}
+
+.library-swap-shell.swap-run .library-tabs {
+  animation: none;
+}
+
+.library-swap-shell.swap-run .library-summary-bar,
+.library-swap-shell.swap-run .library-detail-header {
+  animation-delay: 0ms;
+}
+
+.library-swap-shell.swap-run .library-content {
+  animation-delay: 0ms;
 }
 
 .library-swap-shell.header-collapsed {
   gap: 8px;
-}
-
-@keyframes library-shell-swap {
-  from { opacity: 0.28; transform: translate3d(var(--swap-enter-x, 26px), var(--swap-enter-y, 0), 0); }
-  to { opacity: 1; transform: translate3d(0, 0, 0); }
 }
 
 .library-content-swap {
@@ -1962,9 +2200,29 @@ button,
   contain: layout paint;
 }
 
+.library-swap-shell.swap-run .track-list-shell,
+.library-swap-shell.swap-run .library-songs-section,
+.library-swap-shell.swap-run .grid-container,
+.library-swap-shell.swap-run .library-group-grid,
+.library-swap-shell.swap-run .library-group-list,
+.library-swap-shell.swap-run .library-detail-view {
+  animation: none;
+}
+
 @keyframes library-swap {
   from { opacity: 0; transform: translate3d(var(--swap-enter-x, 26px), 0, 0); }
   to { opacity: 1; transform: translate3d(0, 0, 0); }
+}
+
+@keyframes library-content-swap-sideways {
+  from {
+    opacity: 0.94;
+    transform: translate3d(calc(var(--swap-enter-x, 26px) * 0.12), 0, 0);
+  }
+  to {
+    opacity: 1;
+    transform: translate3d(0, 0, 0);
+  }
 }
 
 .library-top-swap {
@@ -2006,7 +2264,7 @@ button,
   pointer-events: none;
 }
 
-/* The shell handles tab transitions; avoid double animations on big lists. */
+/* Keep shell-driven transitions consistent across summary and content. */
 .library-swap-shell .track-list,
 .library-swap-shell .grid-container {
   animation: none;
@@ -2205,15 +2463,19 @@ button,
   font-weight: 800;
   letter-spacing: 0.02em;
   cursor: pointer;
-  transition: background-color 0.15s ease, color 0.15s ease;
+  transition: var(--hover-transition);
+  box-shadow: var(--app-button-shadow);
 }
 
 .header-player-toggle:hover:not(:disabled) {
   background: color-mix(in srgb, var(--accent) 16%, var(--surface-light));
+  box-shadow: var(--app-button-shadow-hover);
+  transform: translateY(var(--button-hover-lift)) scale(var(--button-hover-scale));
 }
 
 .header-player-toggle:active:not(:disabled) {
   background: color-mix(in srgb, var(--accent) 12%, var(--surface-light));
+  transform: translateY(0) scale(var(--button-active-scale));
 }
 
 .header-player-toggle:disabled {
@@ -2281,7 +2543,7 @@ button,
   background: var(--app-button-bg-hover);
   box-shadow: var(--app-button-shadow-hover);
   color: var(--app-button-fg-hover);
-  transform: translateY(-1px) scale(1.04);
+  transform: translateY(var(--button-hover-lift)) scale(var(--button-hover-scale));
 }
 
 .btn-header-action.scan {
@@ -2349,7 +2611,7 @@ button,
   background: var(--app-button-bg-hover);
   color: var(--app-button-fg-hover);
   box-shadow: var(--app-button-shadow-hover);
-  transform: scale(1.05);
+  transform: translateY(var(--button-hover-lift)) scale(var(--button-hover-scale));
 }
 
 .window-control-btn.danger:hover {
@@ -2435,6 +2697,7 @@ button,
   background: color-mix(in srgb, var(--surface-color) 14%, transparent);
   color: rgba(255, 255, 255, 0.76);
   transition: var(--hover-transition);
+  box-shadow: var(--app-button-shadow);
 }
 
 :root[data-theme='light'] .control-box {
@@ -2443,7 +2706,8 @@ button,
 }
 
 .control-box:hover {
-  transform: translateY(-1px) scale(1.03);
+  box-shadow: var(--app-button-shadow-hover);
+  transform: translateY(var(--button-hover-lift)) scale(var(--button-hover-scale));
   background: color-mix(in srgb, var(--accent) 16%, transparent);
 }
 
@@ -2836,7 +3100,7 @@ button,
   border: 1px solid var(--app-field-border);
   border-radius: 18px;
   margin: 0 0 8px;
-  box-shadow: var(--app-field-shadow);
+  box-shadow: var(--app-summary-shadow);
   backdrop-filter: blur(14px) saturate(130%);
 }
 
@@ -2884,7 +3148,7 @@ button,
   justify-content: flex-end;
   padding: 2px;
   border-radius: 14px;
-  filter: drop-shadow(0 10px 18px color-mix(in srgb, black 16%, transparent));
+  filter: none;
 }
 
 /* When actions wrap to second row, make them fill the full width */
@@ -2985,15 +3249,8 @@ button,
 }
 
 .library-detail-view {
-  /* Detail-page mount animation. Keep it only for detail so the Songs view doesn't "split" its animation
-     (search + summary are outside `.library-section`). Cheap: transform + opacity only. */
-  animation: library-content-in 260ms var(--ease-smooth) both;
-  will-change: transform, opacity;
-}
-
-@keyframes library-content-in {
-  from { opacity: 0.22; transform: translate3d(18px, 0, 0); }
-  to { opacity: 1; transform: translate3d(0, 0, 0); }
+  animation: none;
+  will-change: auto;
 }
 
 .library-toolbar {
@@ -3029,7 +3286,7 @@ button,
   background: var(--app-button-bg-hover);
   color: var(--app-button-fg-hover);
   box-shadow: var(--app-button-shadow-hover);
-  transform: translateY(-1px) scale(1.03);
+  transform: translateY(var(--button-hover-lift)) scale(var(--button-hover-scale));
 }
 
 .library-action-btn.secondary {
@@ -3129,13 +3386,11 @@ button,
   overflow: hidden;
   box-shadow: var(--app-field-shadow);
   backdrop-filter: blur(14px) saturate(130%);
-  /* Helps big grids/lists render without jank (Chromium/Electron). */
-  content-visibility: auto;
   contain: layout style paint;
 }
 
-.library-group-card { contain-intrinsic-size: 260px 260px; }
-.library-group-row { contain-intrinsic-size: 90px 64px; }
+.library-group-card { contain-intrinsic-size: auto; }
+.library-group-row { contain-intrinsic-size: auto; }
 .library-song-card { contain-intrinsic-size: 260px 260px; }
 .track-item {
   content-visibility: visible;
@@ -3265,6 +3520,7 @@ button,
   background: var(--surface-color);
   border: 1px solid color-mix(in srgb, var(--glass-border) 92%, transparent);
   border-radius: 22px;
+  box-shadow: var(--app-summary-shadow);
   margin-bottom: 8px;
   min-height: 58px;
 }
@@ -3388,6 +3644,7 @@ button,
   padding: 5px 11px;
   font-size: 0.84rem;
   transition: none;
+  box-shadow: var(--app-button-shadow-compact);
 }
 
 
@@ -3406,6 +3663,7 @@ button,
   border-radius: 14px;
   font-size: 0.82rem;
   transition: none;
+  box-shadow: var(--app-button-shadow-compact);
 }
 
 .library-detail-header .library-sort-control > span {
@@ -3424,7 +3682,7 @@ button,
   border: 1px solid var(--app-button-border);
   background: var(--app-button-bg);
   color: var(--app-button-fg);
-  box-shadow: var(--app-button-shadow);
+  box-shadow: var(--app-button-shadow-compact);
   backdrop-filter: blur(14px) saturate(130%);
 }
 
@@ -3450,7 +3708,7 @@ button,
   color: var(--app-button-fg);
   cursor: pointer;
   transition: var(--hover-transition);
-  box-shadow: var(--app-button-shadow);
+  box-shadow: var(--app-button-shadow-compact);
   backdrop-filter: blur(14px) saturate(130%);
 }
 
@@ -3470,7 +3728,8 @@ button,
 .add-playlist-btn:hover {
   background: var(--app-button-bg-hover);
   color: var(--app-button-fg-hover);
-  box-shadow: var(--app-button-shadow-hover);
+  box-shadow: var(--app-button-shadow-compact-hover);
+  transform: translateY(var(--button-hover-lift)) scale(var(--button-hover-scale));
 }
 
 .sort-toggle-btn:hover, 
@@ -3479,7 +3738,8 @@ button,
 .library-action-btn.icon-only:hover {
   background: var(--app-button-bg-hover);
   color: var(--app-button-fg-hover);
-  box-shadow: var(--app-button-shadow-hover);
+  box-shadow: var(--app-button-shadow-compact-hover);
+  transform: translateY(var(--button-hover-lift)) scale(var(--button-hover-scale));
 }
 
 .sort-toggle-btn {
@@ -3494,8 +3754,10 @@ button,
   border-radius: 14px;
   box-shadow: var(--shadow-lg);
   min-width: 160px;
-  backdrop-filter: blur(20px);
-  animation: popover-in 0.2s ease-out;
+  backdrop-filter: blur(6px);
+  animation: popover-in var(--motion-pop-fast) var(--ease-pop) both;
+  transform-origin: top center;
+  will-change: transform, opacity;
 }
 
 .sort-popover .custom-select-option {
@@ -3525,9 +3787,9 @@ button,
   display: inline-flex;
   align-items: center;
   gap: 6px;
-  border: 1px solid var(--app-field-border);
-  background: var(--app-field-bg);
-  color: var(--text-primary);
+  border: 1px solid var(--app-button-border);
+  background: var(--app-button-bg);
+  color: var(--app-button-fg);
   border-radius: 14px;
   padding: 8px 12px;
   font-family: inherit;
@@ -3537,20 +3799,25 @@ button,
   transition: var(--hover-transition);
   white-space: nowrap;
   min-width: 0;
-  box-shadow: var(--app-field-shadow);
+  box-shadow: var(--app-button-shadow);
   backdrop-filter: blur(14px) saturate(130%);
 }
 
 .custom-select-trigger:hover {
-  background: var(--app-field-bg-hover);
-  border-color: var(--app-field-border-focus);
-  transform: scale(1.03);
+  background: var(--app-button-bg-hover);
+  border-color: color-mix(in srgb, var(--accent) 22%, var(--app-button-border));
+  color: var(--app-button-fg-hover);
+  transform: translateY(-1px) scale(1.015);
+  box-shadow: var(--app-button-shadow-hover);
 }
 
 .custom-select-trigger.open {
-  background: var(--app-field-bg-hover);
-  border-color: var(--app-field-border-focus);
-  box-shadow: var(--app-field-shadow-focus);
+  background: var(--app-button-bg-hover);
+  border-color: color-mix(in srgb, var(--accent) 26%, var(--app-button-border));
+  color: var(--app-button-fg-hover);
+  box-shadow:
+    var(--app-button-shadow-hover),
+    0 0 0 1px color-mix(in srgb, var(--accent) 18%, transparent);
 }
 
 .custom-select-trigger.disabled {
@@ -3584,10 +3851,11 @@ button,
   box-shadow:
     0 16px 40px -12px color-mix(in srgb, black 40%, transparent),
     0 6px 16px -6px color-mix(in srgb, black 24%, transparent);
-  backdrop-filter: blur(20px) saturate(135%);
+  backdrop-filter: blur(6px) saturate(110%);
   overflow: hidden;
-  animation: popover-in 0.18s var(--ease-smooth) both;
+  animation: popover-in var(--motion-pop-fast) var(--ease-pop) both;
   transform-origin: top left;
+  will-change: transform, opacity;
 }
 
 .custom-select-options-inner {
@@ -3677,7 +3945,7 @@ button,
   .library-back-btn:hover,
   .btn-header-action:hover,
   .window-control-btn:hover {
-    transform: none !important;
+    transform: translateY(var(--button-hover-lift)) scale(var(--button-hover-scale)) !important;
   }
 }
 
@@ -3954,11 +4222,81 @@ button,
   background: var(--app-button-bg-hover);
   color: var(--app-button-fg-hover);
   box-shadow: var(--app-button-shadow-hover);
-  transform: translateY(-1px) scale(1.06);
+  transform: translateY(-1px) scale(1.018);
 }
 
 .btn-icon:active {
   transform: translateY(0) scale(0.96);
+}
+
+:is(
+  .btn-ghost,
+  .btn-box,
+  .play-btn-circle,
+  .btn-view,
+  .btn-header-action,
+  .window-control-btn,
+  .library-action-btn,
+  .library-back-btn,
+  .sort-toggle-btn,
+  .add-playlist-btn,
+  .custom-select-trigger,
+  .btn-kebab,
+  .btn-icon,
+  .track-selection-seg,
+  .folder-add-playlist-btn,
+  .btn-inline-create,
+  .playlist-modal-confirm-btn
+) {
+  box-shadow: var(--app-button-shadow);
+  transition: var(--hover-transition);
+  backface-visibility: hidden;
+  will-change: transform, box-shadow;
+}
+
+:is(
+  .btn-ghost,
+  .btn-box,
+  .play-btn-circle,
+  .btn-view,
+  .btn-header-action,
+  .window-control-btn,
+  .library-action-btn,
+  .library-back-btn,
+  .sort-toggle-btn,
+  .add-playlist-btn,
+  .custom-select-trigger,
+  .btn-kebab,
+  .btn-icon,
+  .track-selection-seg,
+  .folder-add-playlist-btn,
+  .btn-inline-create,
+  .playlist-modal-confirm-btn
+):hover:not(:disabled) {
+  box-shadow: var(--app-button-shadow-hover) !important;
+  transform: translateY(var(--button-hover-lift)) scale(var(--button-hover-scale)) !important;
+}
+
+:is(
+  .btn-ghost,
+  .btn-box,
+  .play-btn-circle,
+  .btn-view,
+  .btn-header-action,
+  .window-control-btn,
+  .library-action-btn,
+  .library-back-btn,
+  .sort-toggle-btn,
+  .add-playlist-btn,
+  .custom-select-trigger,
+  .btn-kebab,
+  .btn-icon,
+  .track-selection-seg,
+  .folder-add-playlist-btn,
+  .btn-inline-create,
+  .playlist-modal-confirm-btn
+):active:not(:disabled) {
+  transform: translateY(0) scale(var(--button-active-scale)) !important;
 }
 
 .track-selection-fab {
@@ -3971,10 +4309,11 @@ button,
   border-radius: 16px;
   border: 1px solid var(--glass-border);
   background: color-mix(in srgb, var(--surface-light) 88%, var(--panel-bg));
-  backdrop-filter: blur(18px);
+  backdrop-filter: blur(6px);
   box-shadow: 0 14px 24px color-mix(in srgb, var(--panel-bg) 78%, transparent);
-  animation: dropdown-in var(--motion-med) var(--ease-smooth) both;
+  animation: dropdown-in var(--motion-pop-fast) var(--ease-pop) both;
   transform-origin: bottom center;
+  will-change: transform, opacity;
 }
 
 .track-selection-collapse {
@@ -4011,18 +4350,10 @@ button,
   flex-wrap: nowrap;
   padding: 10px;
   border-radius: 24px;
-  background:
-    linear-gradient(
-      180deg,
-      color-mix(in srgb, var(--surface-color) 88%, black 12%) 0%,
-      color-mix(in srgb, var(--panel-bg) 86%, black 14%) 100%
-    );
-  border: 1px solid color-mix(in srgb, var(--glass-border) 78%, white 8%);
-  box-shadow:
-    0 18px 32px -24px color-mix(in srgb, black 44%, transparent),
-    0 8px 18px -12px color-mix(in srgb, black 26%, transparent),
-    inset 0 1px 0 color-mix(in srgb, white 10%, transparent);
-  backdrop-filter: blur(14px) saturate(120%);
+  background: color-mix(in srgb, var(--surface-light) 56%, transparent);
+  border: 1px solid color-mix(in srgb, var(--glass-border) 90%, transparent);
+  box-shadow: var(--app-summary-shadow);
+  backdrop-filter: blur(12px) saturate(118%);
 }
 
 .track-selection-actions.segmented {
@@ -4035,14 +4366,9 @@ button,
 }
 
 .track-selection-seg {
-  border: 1px solid color-mix(in srgb, var(--glass-border) 82%, white 8%);
-  background:
-    linear-gradient(
-      180deg,
-      color-mix(in srgb, var(--surface-color) 74%, black 26%) 0%,
-      color-mix(in srgb, var(--panel-bg) 80%, black 20%) 100%
-    );
-  color: color-mix(in srgb, var(--text-primary) 92%, white 8%);
+  border: 1px solid var(--app-button-border);
+  background: var(--app-button-bg);
+  color: var(--app-button-fg);
   width: 46px;
   height: 42px;
   padding: 0;
@@ -4059,35 +4385,21 @@ button,
   align-items: center;
   justify-content: center;
   border-radius: 16px;
-  box-shadow:
-    0 8px 16px -14px color-mix(in srgb, black 44%, transparent),
-    inset 0 1px 0 color-mix(in srgb, white 8%, transparent);
+  box-shadow: var(--app-button-shadow);
   backdrop-filter: blur(12px) saturate(120%);
 }
 
 .track-selection-seg:hover:not(:disabled) {
-  background:
-    linear-gradient(
-      180deg,
-      color-mix(in srgb, var(--surface-color) 80%, black 20%) 0%,
-      color-mix(in srgb, var(--panel-bg) 74%, black 26%) 100%
-    );
-  color: color-mix(in srgb, var(--text-primary) 96%, white 4%);
-  border-color: color-mix(in srgb, var(--accent) 22%, var(--glass-border));
-  box-shadow:
-    0 10px 18px -14px color-mix(in srgb, black 48%, transparent),
-    inset 0 1px 0 color-mix(in srgb, white 10%, transparent);
-  transform: translateY(-1px);
+  background: var(--app-button-bg-hover);
+  color: var(--app-button-fg-hover);
+  border-color: color-mix(in srgb, var(--accent) 22%, var(--app-button-border));
+  box-shadow: var(--app-button-shadow-hover);
+  transform: translateY(var(--button-hover-lift)) scale(var(--button-hover-scale));
 }
 
 .track-selection-seg:active:not(:disabled) {
-  background:
-    linear-gradient(
-      180deg,
-      color-mix(in srgb, var(--accent) 10%, var(--surface-color)) 0%,
-      color-mix(in srgb, var(--accent) 8%, var(--panel-bg)) 100%
-    );
-  transform: translateY(0);
+  background: color-mix(in srgb, var(--accent) 10%, var(--app-button-bg-hover));
+  transform: translateY(0) scale(var(--button-active-scale));
 }
 
 .track-selection-seg:disabled {
@@ -4150,9 +4462,10 @@ button,
     0 8px 18px color-mix(in srgb, black 20%, transparent);
   z-index: 1000;
   overflow: hidden;
-  backdrop-filter: blur(20px);
-  animation: context-menu-entry 150ms var(--ease-smooth) both;
+  backdrop-filter: blur(6px);
+  animation: context-menu-entry var(--motion-pop-fast) var(--ease-pop) both;
   transform-origin: top left;
+  will-change: transform, opacity;
 }
 
 .context-menu-item {
@@ -4230,7 +4543,7 @@ button,
     color-mix(in srgb, var(--surface-color) 92%, var(--panel-bg)),
     color-mix(in srgb, var(--panel-bg) 84%, var(--surface-color))
   );
-  border: 1px solid var(--app-field-border);
+  border: 1px solid var(--glass-border);
   border-radius: 22px;
   padding: 20px;
   display: flex;
@@ -4239,31 +4552,33 @@ button,
   box-shadow:
     var(--shadow-lg),
     inset 0 1px 0 color-mix(in srgb, white 14%, transparent);
-  backdrop-filter: blur(16px) saturate(130%);
-  animation: modal-pop var(--motion-med) var(--ease-smooth) both;
+  backdrop-filter: blur(8px) saturate(110%);
+  animation: modal-pop var(--motion-pop) var(--ease-pop) both;
+  transform-origin: 50% 54%;
+  will-change: transform, opacity;
 }
 
 .confirm-modal {
   width: min(460px, 100%);
   max-height: min(60vh, 520px);
-  animation: modal-pop var(--motion-med) var(--ease-smooth);
+  animation: modal-pop var(--motion-pop) var(--ease-pop) both;
 }
 
 @keyframes modal-pop {
   from {
     opacity: 0;
-    transform: translateY(6px) scale(0.98);
+    transform: translate3d(0, 8px, 0) scale(0.988);
   }
   to {
     opacity: 1;
-    transform: translateY(0) scale(1);
+    transform: translate3d(0, 0, 0) scale(1);
   }
 }
 
 @keyframes popover-in {
   from {
     opacity: 0;
-    transform: translate3d(0, -6px, 0) scale(0.98);
+    transform: translate3d(0, -5px, 0) scale(0.99);
   }
   to {
     opacity: 1;
@@ -4274,11 +4589,11 @@ button,
 @keyframes dropdown-in {
   from {
     opacity: 0;
-    transform: translate3d(0, -10px, 0);
+    transform: translate3d(0, -6px, 0) scale(0.99);
   }
   to {
     opacity: 1;
-    transform: translate3d(0, 0, 0);
+    transform: translate3d(0, 0, 0) scale(1);
   }
 }
 
@@ -4366,12 +4681,12 @@ button,
 
 /* Actions row: danger left, done+edit right */
 @keyframes context-menu-entry {
-  from { opacity: 0; transform: scale(0.95) translateY(-5px); }
-  to { opacity: 1; transform: scale(1) translateY(0); }
+  from { opacity: 0; transform: translate3d(0, -5px, 0) scale(0.99); }
+  to { opacity: 1; transform: translate3d(0, 0, 0) scale(1); }
 }
 
 .context-menu {
-  animation: context-menu-entry 150ms var(--ease-smooth) both;
+  animation: context-menu-entry var(--motion-pop-fast) var(--ease-pop) both;
   transform-origin: top left;
 }
 
@@ -4543,7 +4858,8 @@ input.no-stepper {
 .playlist-item-menu-btn:hover {
   background: color-mix(in srgb, var(--text-primary) 10%, transparent);
   color: var(--text-primary);
-  transform: scale(1.06);
+  box-shadow: var(--app-button-shadow-hover);
+  transform: translateY(var(--button-hover-lift)) scale(var(--button-hover-scale));
 }
 
 /* Ensure card context button position */
@@ -4562,6 +4878,7 @@ input.no-stepper {
   height: 28px;
   z-index: 2;
   margin-left: 0;
+  box-shadow: var(--app-button-shadow);
 }
 
 .manage-song-edit-form {
@@ -4683,6 +5000,10 @@ input.no-stepper {
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));
   gap: 12px;
+  padding: 14px;
+  border-radius: 20px;
+  background: color-mix(in srgb, var(--surface-light) 54%, transparent);
+  border: 1px solid color-mix(in srgb, var(--glass-border) 90%, transparent);
 }
 
 .playlist-modal-control-group {
@@ -4720,8 +5041,8 @@ input.no-stepper {
 .playlist-modal-select {
   flex: 1;
   min-width: 240px;
-  border: 1px solid var(--app-field-border);
-  background: var(--app-field-bg);
+  border: 1px solid var(--app-button-border);
+  background: var(--app-button-bg);
   color: var(--text-primary);
   border-radius: 16px;
   padding: 12px 42px 12px 14px;
@@ -4735,7 +5056,7 @@ input.no-stepper {
   justify-content: flex-start;
   text-align: left;
   padding-right: 18px;
-  box-shadow: var(--app-field-shadow);
+  box-shadow: var(--app-button-shadow);
   backdrop-filter: blur(14px) saturate(130%);
 }
 
@@ -4758,8 +5079,19 @@ input.no-stepper {
   border-radius: 22px;
   padding: 14px;
   box-shadow: var(--shadow-lg);
-  animation: modal-pop var(--motion-med) var(--ease-smooth) both;
+  backdrop-filter: blur(8px) saturate(108%);
+  animation: modal-pop var(--motion-pop) var(--ease-pop) both;
   will-change: transform, opacity;
+  transform-origin: 50% 54%;
+}
+
+.playlist-modal-head,
+.playlist-modal-summary,
+.playlist-modal-list {
+  padding: 14px;
+  border-radius: 20px;
+  background: color-mix(in srgb, var(--surface-light) 54%, transparent);
+  border: 1px solid color-mix(in srgb, var(--glass-border) 90%, transparent);
 }
 
 .settings-modal-head {
@@ -4836,18 +5168,23 @@ input.no-stepper {
   font-weight: 600;
   cursor: pointer;
   transition: var(--hover-transition);
+  box-shadow: var(--app-button-shadow);
 }
 
 .settings-sidebar-link:hover {
   background: color-mix(in srgb, var(--accent) 8%, var(--surface-light));
   color: var(--text-primary);
+  box-shadow: var(--app-button-shadow-hover);
+  transform: translateY(var(--button-hover-lift)) scale(var(--button-hover-scale));
 }
 
 .settings-sidebar-link.active {
   background: color-mix(in srgb, var(--accent) 12%, var(--surface-light));
   border-color: color-mix(in srgb, var(--accent) 28%, var(--glass-border));
   color: var(--text-primary);
-  box-shadow: 0 0 0 1px color-mix(in srgb, var(--accent) 18%, transparent);
+  box-shadow:
+    var(--app-button-shadow-hover),
+    0 0 0 1px color-mix(in srgb, var(--accent) 16%, transparent);
 }
 
 .settings-card {

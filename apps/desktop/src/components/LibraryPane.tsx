@@ -62,6 +62,7 @@ export default function LibraryPane() {
   const tabRefs = useRef(new Map<string, HTMLDivElement>());
   const searchInputRef = useRef<HTMLInputElement | null>(null);
   const headerCollapseRafRef = useRef<number | null>(null);
+  const tabCommitRafRef = useRef<number | null>(null);
   const headerCollapsedRef = useRef(false);
   const tracks = useLibraryStore(s => s.tracks);
   const sort = useLibraryStore(s => s.sort);
@@ -116,14 +117,22 @@ export default function LibraryPane() {
     const nextIdx = TAB_ORDER.indexOf(nextTab);
     
     saveCurrentScroll();
-    setSelectedGroupId(null);
-    // Force list view for songs tab, allow grid/list for others
-    if (nextTab === 'songs') {
-      setViewMode('list');
-    }
-    
     triggerSwap(nextIdx > prevIdx ? '26px' : '-26px', '0px');
-    setLibraryTab(nextTab);
+    if (tabCommitRafRef.current != null) {
+      window.cancelAnimationFrame(tabCommitRafRef.current);
+    }
+    tabCommitRafRef.current = window.requestAnimationFrame(() => {
+      tabCommitRafRef.current = null;
+      startTransition(() => {
+        setSelectedGroupId(null);
+        // Force list view for songs tab, allow grid/list for others.
+        if (nextTab === 'songs') {
+          setViewMode('list');
+        }
+
+        setLibraryTab(nextTab);
+      });
+    });
   };
 
   const scrollToTop = () => {
@@ -245,6 +254,10 @@ export default function LibraryPane() {
     if (tabsDragResetRafRef.current != null) {
       window.cancelAnimationFrame(tabsDragResetRafRef.current);
       tabsDragResetRafRef.current = null;
+    }
+    if (tabCommitRafRef.current != null) {
+      window.cancelAnimationFrame(tabCommitRafRef.current);
+      tabCommitRafRef.current = null;
     }
   }, []);
 
@@ -525,7 +538,9 @@ useEffect(() => {
       addToast(t('noSongsToAdd'));
       return;
     }
-    setPlaylistModal({ title, tracks: items });
+    startTransition(() => {
+      setPlaylistModal({ title, tracks: items });
+    });
   };
 
   const handleCreatePlaylist = async (name: string) => {
@@ -1108,7 +1123,7 @@ useEffect(() => {
                     ]}
                     triggerClassName="library-action-select"
                   />
-                  <button className="add-playlist-btn library-action-btn secondary icon-only" title="Add Playlist" onClick={() => setCreatePlaylistOpen(true)}>
+                  <button className="add-playlist-btn library-action-btn secondary icon-only" title="Add Playlist" onClick={() => startTransition(() => setCreatePlaylistOpen(true))}>
                     <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.6" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
                       <line x1="12" y1="5" x2="12" y2="19"></line>
                       <line x1="5" y1="12" x2="19" y2="12"></line>

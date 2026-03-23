@@ -1,4 +1,4 @@
-import { app, BrowserWindow, ipcMain, dialog, nativeTheme, Menu, Tray, protocol, net } from 'electron';
+import { app, BrowserWindow, ipcMain, dialog, nativeTheme, Menu, Tray, protocol, nativeImage } from 'electron';
 import { join } from 'path';
 import { pathToFileURL } from 'url';
 import { readFile, readdir, stat, writeFile, mkdir, copyFile } from 'fs/promises';
@@ -19,6 +19,7 @@ protocol.registerSchemesAsPrivileged([
 let mainWindow: BrowserWindow | null = null;
 let tray: Tray | null = null;
 let updaterReady = false;
+let isQuitting = false;
 
 type UpdaterStatus =
   | 'idle'
@@ -227,6 +228,50 @@ function saveSettings(s: AppSettings) {
   db.prepare('INSERT OR REPLACE INTO settings (key, value) VALUES (?, ?)').run('app', JSON.stringify(s));
 }
 
+function restoreMainWindow() {
+  if (!mainWindow || mainWindow.isDestroyed()) return;
+  if (mainWindow.isMinimized()) mainWindow.restore();
+  if (!mainWindow.isVisible()) mainWindow.show();
+  mainWindow.focus();
+}
+
+function createTray() {
+  if (tray) return tray;
+  const trayIconPath = [
+    join(app.getAppPath(), 'build', 'icon.png'),
+    join(__dirname, '../build/icon.png'),
+    join(process.resourcesPath, 'build', 'icon.png'),
+  ].find(candidate => existsSync(candidate));
+  const trayIcon = trayIconPath ? nativeImage.createFromPath(trayIconPath) : nativeImage.createEmpty();
+  tray = new Tray(trayIcon);
+  tray.setToolTip('NOCTRA');
+  tray.setContextMenu(Menu.buildFromTemplate([
+    {
+      label: 'Open NOCTRA',
+      click: () => restoreMainWindow(),
+    },
+    {
+      label: 'Exit',
+      click: () => {
+        isQuitting = true;
+        tray?.destroy();
+        tray = null;
+        mainWindow?.destroy();
+        app.quit();
+      },
+    },
+  ]));
+  tray.on('click', () => restoreMainWindow());
+  tray.on('double-click', () => restoreMainWindow());
+  return tray;
+}
+
+function hideToTray() {
+  if (!mainWindow || mainWindow.isDestroyed()) return;
+  createTray();
+  mainWindow.hide();
+}
+
 function consumeFirstRunState() {
   const isFirstRun = !existsSync(firstRunMarkerPath);
   if (isFirstRun) {
@@ -246,7 +291,8 @@ function createWindow() {
     height: 740,
     minWidth: 940,
     minHeight: 700,
-    backgroundColor: '#0d1b1b',
+    show: false,
+    backgroundColor: '#000000',
     frame: false,
     titleBarStyle: 'hidden',
     titleBarOverlay: false,
@@ -293,6 +339,17 @@ function createWindow() {
   mainWindow.on('unmaximize', sendMaximizeState);
   mainWindow.on('enter-full-screen', sendMaximizeState);
   mainWindow.on('leave-full-screen', sendMaximizeState);
+  mainWindow.on('close', event => {
+    if (isQuitting) return;
+    const settings = getSettings();
+    if (settings.closeAction === 'tray') {
+      event.preventDefault();
+      hideToTray();
+    }
+  });
+  mainWindow.once('ready-to-show', () => {
+    mainWindow?.show();
+  });
 
   mainWindow.on('closed', () => { mainWindow = null; });
 }
@@ -320,11 +377,18 @@ app.whenReady().then(() => {
     });
   }
 
-  app.on('activate', () => { if (!mainWindow) createWindow(); });
+  app.on('activate', () => {
+    if (!mainWindow) createWindow();
+    else restoreMainWindow();
+  });
 });
 
 app.on('window-all-closed', () => {
-  if (process.platform !== 'darwin') app.quit();
+  if (process.platform !== 'darwin' && isQuitting) app.quit();
+});
+
+app.on('before-quit', () => {
+  isQuitting = true;
 });
 
 // ─── IPC: Window Controls ─────────────────────────────────────────────────────

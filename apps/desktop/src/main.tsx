@@ -7,6 +7,7 @@ import { applyCachedThemeSnapshot } from './store';
 console.log('Renderer: main.tsx starting');
 
 window.onerror = (msg, url, line, col, error) => {
+  document.getElementById('boot-splash')?.remove();
   document.body.innerHTML = `<div style="color: white; background: red; padding: 20px; font-family: sans-serif;">
     <h1>Fatal Error</h1>
     <p>${msg}</p>
@@ -28,6 +29,7 @@ async function bootstrap() {
       <App />
     );
   } catch (e: any) {
+    document.getElementById('boot-splash')?.remove();
     document.body.innerHTML = `<div style="color: white; background: red; padding: 20px;">
       <h1>Render Error</h1>
       <p>${e.message}</p>

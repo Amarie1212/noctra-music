@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import { startTransition, useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react';
 import { createPortal } from 'react-dom';
 import type { Playlist, Track } from '@music/core';
 import { formatDuration } from '@music/core';
@@ -42,6 +42,28 @@ import ConfirmDialog from './ConfirmDialog';
 const MENU_WIDTH = 220;
 const MENU_HEIGHT = 280;
 const MENU_GAP = 10;
+
+const ROW_HEIGHT = 58;
+const INITIAL_VIRTUAL_ROWS = 72;
+
+function getInitialWindowRange(trackCount: number, rowHeight: number, shouldVirtualize: boolean) {
+  if (!shouldVirtualize) {
+    return {
+      start: 0,
+      end: trackCount,
+      topPad: 0,
+      bottomPad: 0,
+    };
+  }
+
+  const initialEnd = Math.min(trackCount, INITIAL_VIRTUAL_ROWS);
+  return {
+    start: 0,
+    end: initialEnd,
+    topPad: 0,
+    bottomPad: Math.max(0, (trackCount - initialEnd) * rowHeight),
+  };
+}
 
 export default function TrackList({
   tracks,
@@ -87,22 +109,16 @@ export default function TrackList({
   const listRef = useRef<HTMLDivElement | null>(null);
   const scrollContainerRef = useRef<HTMLDivElement | null>(null);
   const scrollElRef = useRef<HTMLElement | null>(null);
+  const listTopOffsetRef = useRef(0);
   const rafRef = useRef<number | null>(null);
   const contextMenuRef = useRef<HTMLDivElement | null>(null);
   const selectMenuRef = useRef<HTMLDivElement | null>(null);
 
-  // Virtualize earlier to reduce DOM node count (RAM/CPU).
-  // Support virtualization for reorderable lists too by keeping the scroll position stable.
-  const shouldVirtualize = tracks.length > 400;
-  const ROW_HEIGHT = 58; // px (matched to new padding + artwork size)
-  const OVERSCAN = 6;
+  // Balance DOM size and scroll smoothness for medium and large libraries.
+  const shouldVirtualize = tracks.length > (reorderable ? 260 : 180);
+  const OVERSCAN = 20;
 
-  const [windowRange, setWindowRange] = useState(() => ({
-    start: 0,
-    end: Math.min(tracks.length, 25),
-    topPad: 0,
-    bottomPad: Math.max(0, (tracks.length - Math.min(tracks.length, 60)) * ROW_HEIGHT),
-  }));
+  const [windowRange, setWindowRange] = useState(() => getInitialWindowRange(tracks.length, ROW_HEIGHT, shouldVirtualize));
   const windowRangeRef = useRef(windowRange);
   useEffect(() => {
     windowRangeRef.current = windowRange;
@@ -110,19 +126,12 @@ export default function TrackList({
 
   const updateVirtualWindow = useCallback(() => {
     if (!shouldVirtualize) return;
-    const listEl = listRef.current;
     const scrollEl = scrollElRef.current;
-    if (!listEl || !scrollEl) return;
+    if (!scrollEl) return;
 
     const scrollTop = scrollEl.scrollTop;
     const viewportH = scrollEl.clientHeight || 1;
-
-    const scrollRect = scrollEl.getBoundingClientRect();
-    const listRect = listEl.getBoundingClientRect();
-
-    // List's top offset inside the scroll container's scrollable content.
-    const listTop = (listRect.top - scrollRect.top) + scrollTop;
-    const localY = scrollTop - listTop;
+    const localY = Math.max(0, scrollTop - listTopOffsetRef.current);
 
     const start = Math.max(0, Math.floor(localY / ROW_HEIGHT) - OVERSCAN);
     const end = Math.min(tracks.length, Math.ceil((localY + viewportH) / ROW_HEIGHT) + OVERSCAN);
@@ -211,9 +220,11 @@ export default function TrackList({
 
   useEffect(() => {
     if (!shouldVirtualize) return;
-    const scrollEl = scrollContainerRef.current ?? ((listRef.current?.closest('.library-content') as HTMLElement | null) ?? null);
-    if (!scrollEl) return;
+    const listEl = listRef.current;
+    const scrollEl = scrollContainerRef.current ?? ((listEl?.closest('.library-content') as HTMLElement | null) ?? null);
+    if (!scrollEl || !listEl) return;
     scrollElRef.current = scrollEl;
+    listTopOffsetRef.current = listEl.offsetTop;
 
     const onScroll = () => {
       if (rafRef.current) return;
@@ -225,8 +236,12 @@ export default function TrackList({
 
     scrollEl.addEventListener('scroll', onScroll, { passive: true });
 
-    const ro = new ResizeObserver(() => updateVirtualWindow());
+    const ro = new ResizeObserver(() => {
+      listTopOffsetRef.current = listEl.offsetTop;
+      updateVirtualWindow();
+    });
     ro.observe(scrollEl);
+    ro.observe(listEl);
 
     // Initial measurement.
     updateVirtualWindow();
@@ -241,11 +256,23 @@ export default function TrackList({
     };
   }, [shouldVirtualize, updateVirtualWindow]);
 
+  useLayoutEffect(() => {
+    const nextRange = getInitialWindowRange(tracks.length, ROW_HEIGHT, shouldVirtualize);
+    setWindowRange(current =>
+      current.start === nextRange.start &&
+      current.end === nextRange.end &&
+      current.topPad === nextRange.topPad &&
+      current.bottomPad === nextRange.bottomPad
+        ? current
+        : nextRange
+    );
+  }, [shouldVirtualize, tracks.length]);
+
   useEffect(() => {
     setSelectedTrackIds(current => current.filter(trackId => tracks.some(track => track.id === trackId)));
   }, [tracks]);
 
-  useEffect(() => {
+  useLayoutEffect(() => {
     if (!shouldVirtualize) return;
     updateVirtualWindow();
   }, [shouldVirtualize, tracks.length, selectionMode, updateVirtualWindow]);
@@ -297,6 +324,10 @@ export default function TrackList({
   const selectedTracks = useMemo(
     () => tracks.filter(track => selectedTrackIdSet.has(track.id)),
     [selectedTrackIdSet, tracks]
+  );
+  const visibleTracks = useMemo(
+    () => (shouldVirtualize ? tracks.slice(windowRange.start, windowRange.end) : tracks),
+    [shouldVirtualize, tracks, windowRange.end, windowRange.start]
   );
   const allVisibleSelected = tracks.length > 0 && selectedTrackIds.length === tracks.length;
   const isPlaylistScoped = Boolean(onRemoveTracks);
@@ -402,7 +433,7 @@ export default function TrackList({
             type="button"
             className="track-selection-seg"
             disabled={!selectedTrackIds.length}
-            onClick={() => setBulkPlaylistOpen(true)}
+            onClick={() => startTransition(() => setBulkPlaylistOpen(true))}
             aria-label={t('addToPlaylist')}
             title={t('addToPlaylist')}
           >
@@ -416,7 +447,7 @@ export default function TrackList({
             type="button"
             className="track-selection-seg"
             disabled={!selectedTrackIds.length}
-            onClick={() => setBulkRemoveConfirmOpen(true)}
+            onClick={() => startTransition(() => setBulkRemoveConfirmOpen(true))}
             aria-label={isPlaylistScoped ? t('removeFromPlaylist') : t('removeFromLibrary')}
             title={isPlaylistScoped ? t('removeFromPlaylist') : t('removeFromLibrary')}
           >
@@ -454,7 +485,7 @@ export default function TrackList({
           <div style={{ height: windowRange.topPad }} aria-hidden="true" />
         )}
 
-        {(shouldVirtualize ? tracks.slice(windowRange.start, windowRange.end) : tracks).map((track, index) => {
+        {visibleTracks.map((track, index) => {
           const absoluteIndex = shouldVirtualize ? windowRange.start + index : index;
           return (
             <TrackRow
@@ -499,6 +530,7 @@ export default function TrackList({
               }}
               showAlbum={showAlbum}
               showGenre={showGenre}
+              eagerArtwork={index < (shouldVirtualize ? 20 : 12)}
               t={t}
             />
           );
@@ -524,17 +556,17 @@ export default function TrackList({
               {t('play')}
             </div>
             <div className="context-menu-sep" />
-            <div className="context-menu-item" onClick={() => { closeMenu(); setActiveModal({ type: 'playlist', track: selectedTrack }); }}>
+            <div className="context-menu-item" onClick={() => { closeMenu(); startTransition(() => setActiveModal({ type: 'playlist', track: selectedTrack })); }}>
               {t('addToPlaylist')}
             </div>
-            <div className="context-menu-item" onClick={() => { closeMenu(); setActiveModal({ type: 'manage', track: selectedTrack }); }}>
+            <div className="context-menu-item" onClick={() => { closeMenu(); startTransition(() => setActiveModal({ type: 'manage', track: selectedTrack })); }}>
               {t('manageSong')}
             </div>
-            <div className="context-menu-item" onClick={() => { closeMenu(); setActiveModal({ type: 'lyrics', track: selectedTrack }); }}>
+            <div className="context-menu-item" onClick={() => { closeMenu(); startTransition(() => setActiveModal({ type: 'lyrics', track: selectedTrack })); }}>
               {t('editLyrics')}
             </div>
             <div className="context-menu-sep" />
-            <div className="context-menu-item danger" onClick={() => { closeMenu(); setActiveModal({ type: 'confirmRemove', track: selectedTrack }); }}>
+            <div className="context-menu-item danger" onClick={() => { closeMenu(); startTransition(() => setActiveModal({ type: 'confirmRemove', track: selectedTrack })); }}>
               {isPlaylistScoped ? t('removeFromPlaylist') : t('removeFromLibrary')}
             </div>
           </div>
@@ -657,6 +689,7 @@ const TrackRow = memo(({
   onDragEnd,
   showAlbum,
   showGenre,
+  eagerArtwork,
   t
 }: {
   track: Track;
@@ -679,6 +712,7 @@ const TrackRow = memo(({
   onDragEnd: () => void;
   showAlbum?: boolean;
   showGenre?: boolean;
+  eagerArtwork: boolean;
   t: (key: string) => string;
 }) => {
   const details = [track.artist];
@@ -729,8 +763,9 @@ const TrackRow = memo(({
             <img 
               src={artworkSrc} 
               alt="" 
-              loading="lazy" 
+              loading={eagerArtwork ? 'eager' : 'auto'}
               decoding="async" 
+              fetchPriority={eagerArtwork ? 'high' : 'auto'}
               draggable={false} 
             />
           ) : (

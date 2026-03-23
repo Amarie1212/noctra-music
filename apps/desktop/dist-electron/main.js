@@ -37,6 +37,7 @@ var EQ_FREQUENCIES = [32, 64, 125, 250, 500, 1e3, 2e3, 4e3, 8e3, 16e3];
 var DEFAULT_SETTINGS = {
   theme: "system",
   language: "system",
+  closeAction: "exit",
   accentColor: "#94a3b8",
   eq: {
     enabled: false,
@@ -60,7 +61,9 @@ import_electron.protocol.registerSchemesAsPrivileged([
   { scheme: "media", privileges: { stream: true, bypassCSP: true, secure: true, supportFetchAPI: true } }
 ]);
 var mainWindow = null;
+var tray = null;
 var updaterReady = false;
+var isQuitting = false;
 var updaterState = {
   status: "idle",
   currentVersion: import_electron.app.getVersion()
@@ -218,6 +221,47 @@ function getSettings() {
 function saveSettings(s) {
   db.prepare("INSERT OR REPLACE INTO settings (key, value) VALUES (?, ?)").run("app", JSON.stringify(s));
 }
+function restoreMainWindow() {
+  if (!mainWindow || mainWindow.isDestroyed()) return;
+  if (mainWindow.isMinimized()) mainWindow.restore();
+  if (!mainWindow.isVisible()) mainWindow.show();
+  mainWindow.focus();
+}
+function createTray() {
+  if (tray) return tray;
+  const trayIconPath = [
+    (0, import_path.join)(import_electron.app.getAppPath(), "build", "icon.png"),
+    (0, import_path.join)(__dirname, "../build/icon.png"),
+    (0, import_path.join)(process.resourcesPath, "build", "icon.png")
+  ].find((candidate) => (0, import_fs.existsSync)(candidate));
+  const trayIcon = trayIconPath ? import_electron.nativeImage.createFromPath(trayIconPath) : import_electron.nativeImage.createEmpty();
+  tray = new import_electron.Tray(trayIcon);
+  tray.setToolTip("NOCTRA");
+  tray.setContextMenu(import_electron.Menu.buildFromTemplate([
+    {
+      label: "Open NOCTRA",
+      click: () => restoreMainWindow()
+    },
+    {
+      label: "Exit",
+      click: () => {
+        isQuitting = true;
+        tray?.destroy();
+        tray = null;
+        mainWindow?.destroy();
+        import_electron.app.quit();
+      }
+    }
+  ]));
+  tray.on("click", () => restoreMainWindow());
+  tray.on("double-click", () => restoreMainWindow());
+  return tray;
+}
+function hideToTray() {
+  if (!mainWindow || mainWindow.isDestroyed()) return;
+  createTray();
+  mainWindow.hide();
+}
 function consumeFirstRunState() {
   const isFirstRun = !(0, import_fs.existsSync)(firstRunMarkerPath);
   if (isFirstRun) {
@@ -234,7 +278,8 @@ function createWindow() {
     height: 740,
     minWidth: 940,
     minHeight: 700,
-    backgroundColor: "#0d1b1b",
+    show: false,
+    backgroundColor: "#000000",
     frame: false,
     titleBarStyle: "hidden",
     titleBarOverlay: false,
@@ -268,6 +313,17 @@ function createWindow() {
   mainWindow.on("unmaximize", sendMaximizeState);
   mainWindow.on("enter-full-screen", sendMaximizeState);
   mainWindow.on("leave-full-screen", sendMaximizeState);
+  mainWindow.on("close", (event) => {
+    if (isQuitting) return;
+    const settings = getSettings();
+    if (settings.closeAction === "tray") {
+      event.preventDefault();
+      hideToTray();
+    }
+  });
+  mainWindow.once("ready-to-show", () => {
+    mainWindow?.show();
+  });
   mainWindow.on("closed", () => {
     mainWindow = null;
   });
@@ -292,10 +348,14 @@ import_electron.app.whenReady().then(() => {
   }
   import_electron.app.on("activate", () => {
     if (!mainWindow) createWindow();
+    else restoreMainWindow();
   });
 });
 import_electron.app.on("window-all-closed", () => {
-  if (process.platform !== "darwin") import_electron.app.quit();
+  if (process.platform !== "darwin" && isQuitting) import_electron.app.quit();
+});
+import_electron.app.on("before-quit", () => {
+  isQuitting = true;
 });
 import_electron.ipcMain.on("window:minimize", () => mainWindow?.minimize());
 import_electron.ipcMain.on("window:maximize", () => {

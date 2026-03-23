@@ -1,5 +1,5 @@
-import { useEffect, useRef } from 'react';
-import { useLibraryStore, usePlayerStore, usePlaylistStore, useSettingsStore } from './store';
+import { useEffect, useRef, useState } from 'react';
+import { useLibraryStore, usePlaylistStore, useSettingsStore } from './store';
 import AudioEngine from './components/AudioEngine';
 import ToastContainer from './components/ToastContainer';
 import MainHeader from './components/MainHeader';
@@ -16,16 +16,56 @@ export default function App() {
   const loadPlaylists = usePlaylistStore(s => s.loadPlaylists);
   const playlistCount = usePlaylistStore(s => s.playlists.length);
   const loadSettings = useSettingsStore(s => s.loadSettings);
-  const currentTrackId = usePlayerStore(s => s.currentTrackId);
-  const isNowPlayingOpen = usePlayerStore(s => s.isNowPlayingOpen);
-  const isNowPlayingVisible = usePlayerStore(s => s.isNowPlayingVisible);
   const startupSawLoadingRef = useRef(false);
   const startupLoggedRef = useRef(false);
+  const [isStartupReady, setIsStartupReady] = useState(false);
+  const [hasMinSplashElapsed, setHasMinSplashElapsed] = useState(false);
+  const [isAppVisible, setIsAppVisible] = useState(false);
+  const [isDashboardIntroActive, setIsDashboardIntroActive] = useState(false);
 
   useEffect(() => {
     markPerfStart('app-startup');
-    void Promise.allSettled([loadSettings(), loadTracks(), loadPlaylists()]);
+    void Promise.allSettled([loadSettings(), loadTracks(), loadPlaylists()]).then(() => {
+      setIsStartupReady(true);
+    });
   }, [loadPlaylists, loadSettings, loadTracks]);
+
+  useEffect(() => {
+    const timer = window.setTimeout(() => {
+      setHasMinSplashElapsed(true);
+    }, 3000);
+
+    return () => window.clearTimeout(timer);
+  }, []);
+
+  useEffect(() => {
+    if (!isStartupReady || !hasMinSplashElapsed) return;
+    const timer = window.setTimeout(() => {
+      const bootSplash = document.getElementById('boot-splash');
+      if (bootSplash) {
+        bootSplash.classList.add('is-hiding');
+        window.setTimeout(() => {
+          bootSplash.remove();
+          setIsAppVisible(true);
+          setIsDashboardIntroActive(true);
+        }, 760);
+        return;
+      }
+      setIsAppVisible(true);
+      setIsDashboardIntroActive(true);
+    }, 340);
+
+    return () => window.clearTimeout(timer);
+  }, [hasMinSplashElapsed, isStartupReady]);
+
+  useEffect(() => {
+    if (!isDashboardIntroActive) return;
+    const timer = window.setTimeout(() => {
+      setIsDashboardIntroActive(false);
+    }, 1100);
+
+    return () => window.clearTimeout(timer);
+  }, [isDashboardIntroActive]);
 
   useEffect(() => {
     if (isLibraryLoading) {
@@ -40,7 +80,7 @@ export default function App() {
   }, [isLibraryLoading, playlistCount, trackCount]);
 
   return (
-    <div className="app-root">
+    <div className={`app-root${isAppVisible ? ' startup-app-visible' : ' startup-app-hidden'}${isDashboardIntroActive ? ' startup-dashboard-intro' : ''}`}>
       <AudioEngine />
       <MainHeader />
 

@@ -60,7 +60,7 @@ const LANGUAGE_OPTIONS = [
   { id: 'ja', labelKey: 'japanese' },
 ] as const;
 
-type SettingsSection = 'theme' | 'language' | 'player' | 'startup' | 'updates' | 'library' | 'eq';
+type SettingsSection = 'theme' | 'language' | 'player' | 'startup' | 'app' | 'updates' | 'library' | 'eq';
 
 export default function MainHeader() {
   const settingsBodyRef = useRef<HTMLDivElement | null>(null);
@@ -462,6 +462,7 @@ export default function MainHeader() {
                   { id: 'language', label: t('language') },
                   { id: 'player', label: t('playerModel') },
                   { id: 'startup', label: t('startupTab') },
+                  { id: 'app', label: t('appBehavior') },
                   { id: 'updates', label: t('checkForUpdate') },
                   { id: 'library', label: t('library') },
                   { id: 'eq', label: t('soundEq') },
@@ -572,6 +573,33 @@ export default function MainHeader() {
                     ]}
                     triggerClassName="settings-select"
                   />
+                </div>
+                <div className="settings-save-note">{t('autoSaveNote')}</div>
+              </section>
+              )}
+
+              {activeSettingsSection === 'app' && (
+                <section className="settings-card">
+                <h3>{t('appBehavior')}</h3>
+                <div className="settings-danger-copy">
+                  <strong>{t('closeButtonAction')}</strong>
+                  <p>{t('closeButtonActionDesc')}</p>
+                </div>
+                <div className="layout-grid" style={{ marginTop: 14 }}>
+                  <button
+                    className={`layout-card ${settings.closeAction === 'exit' ? 'active' : ''}`}
+                    onClick={() => saveSettings({ closeAction: 'exit' })}
+                  >
+                    <strong>{t('closeActionExit')}</strong>
+                    <span>{t('closeActionExitDesc')}</span>
+                  </button>
+                  <button
+                    className={`layout-card ${settings.closeAction === 'tray' ? 'active' : ''}`}
+                    onClick={() => saveSettings({ closeAction: 'tray' })}
+                  >
+                    <strong>{t('closeActionTray')}</strong>
+                    <span>{t('closeActionTrayDesc')}</span>
+                  </button>
                 </div>
                 <div className="settings-save-note">{t('autoSaveNote')}</div>
               </section>

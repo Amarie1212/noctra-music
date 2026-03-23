@@ -71,7 +71,7 @@ export default function NowPlayingPane() {
             </>
           )}
           <div className={`vinyl-record ${hasTrack && isPlaying ? 'spinning' : ''} ${(playerLayout === 'vinyl' || playerLayout === 'cassette') && hasTrack && !isPlaying ? 'paused' : ''}`}>
-            <div className={`vinyl-label-outer ${playerLayout === 'vinyl' && hasTrack && isPlaying ? 'spinning' : ''} ${playerLayout === 'vinyl' && hasTrack && !isPlaying ? 'paused' : ''}`}>
+            <div className={`vinyl-label-outer ${playerLayout === 'vinyl' && hasTrack ? 'spinning' : ''} ${playerLayout === 'vinyl' && hasTrack && !isPlaying ? 'paused' : ''}`}>
               {artworkSrc ? (
                 <img
                   src={artworkSrc}

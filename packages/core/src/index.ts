@@ -75,6 +75,7 @@ export type LibrarySort = 'name-asc' | 'name-desc' | 'date-added' | 'last-played
 export interface AppSettings {
   theme: AppTheme;
   language: 'system' | 'id' | 'en' | 'ja';
+  closeAction: 'exit' | 'tray';
   accentColor: string; // hex
   eq: EQSettings;
   lastVolume: number;
@@ -128,6 +129,7 @@ export const EQ_FREQUENCIES = [32, 64, 125, 250, 500, 1000, 2000, 4000, 8000, 16
 export const DEFAULT_SETTINGS: AppSettings = {
   theme: 'system',
   language: 'system',
+  closeAction: 'exit',
   accentColor: '#94a3b8',
   eq: {
     enabled: false,
