@@ -1972,8 +1972,9 @@ button,
   position: relative;
   display: inline-flex;
   align-items: center;
-  min-height: 28px;
-  padding: 2px 0;
+  justify-content: center;
+  min-height: 40px;
+  padding: 8px 10px;
   transition:
     color 0.18s ease,
     transform 0.24s var(--ease-smooth),
@@ -6141,17 +6142,19 @@ input.no-stepper {
 }
 
 .toast {
-  background: rgba(25, 20, 25, 0.88);
-  backdrop-filter: blur(20px);
-  -webkit-backdrop-filter: blur(20px);
-  color: white;
+  background: color-mix(in srgb, var(--surface-color) 88%, var(--panel-bg));
+  backdrop-filter: blur(16px) saturate(118%);
+  -webkit-backdrop-filter: blur(16px) saturate(118%);
+  color: var(--text-primary);
   padding: 12px 28px;
   border-radius: 99px;
   font-size: 0.95rem;
-  font-weight: 500;
-  box-shadow: 0 10px 40px rgba(0, 0, 0, 0.5);
-  border: 1px solid rgba(255, 255, 255, 0.12);
-  animation: toast-in 0.4s cubic-bezier(0.22, 1, 0.36, 1);
+  font-weight: 600;
+  box-shadow:
+    var(--app-button-shadow-hover),
+    0 0 0 1px color-mix(in srgb, var(--accent) 12%, transparent);
+  border: 1px solid color-mix(in srgb, var(--accent) 12%, var(--glass-border));
+  animation: toast-in var(--motion-pop) var(--ease-pop);
   pointer-events: auto;
   white-space: nowrap;
 }

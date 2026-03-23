@@ -613,9 +613,16 @@ interface ToastStore {
   removeToast: (id: string) => void;
 }
 
+let lastToastMessage = '';
+let lastToastAt = 0;
+
 export const useToastStore = create<ToastStore>((set) => ({
   toasts: [],
   addToast: (message) => {
+    const now = Date.now();
+    if (message === lastToastMessage && now - lastToastAt < 1200) return;
+    lastToastMessage = message;
+    lastToastAt = now;
     const id = generateId();
     set(s => ({ toasts: [...s.toasts, { id, message }] }));
     setTimeout(() => set(s => ({ toasts: s.toasts.filter(t => t.id !== id) })), 3000);

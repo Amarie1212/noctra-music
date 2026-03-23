@@ -10,6 +10,7 @@ declare global {
         getVersion: () => Promise<string>;
         consumeFirstRun: () => Promise<boolean>;
         onMaximizeChange: (cb: (isMaximized: boolean) => void) => () => void;
+        onTrayPlayerCommand: (cb: (command: 'toggle-play' | 'next-track' | 'previous-track') => void) => () => void;
       };
       dialog: {
         openFiles: () => Promise<string[]>;

@@ -15,6 +15,11 @@ import_electron.contextBridge.exposeInMainWorld("api", {
       const listener = (_event, value) => cb(Boolean(value));
       import_electron.ipcRenderer.on("window:maximize-changed", listener);
       return () => import_electron.ipcRenderer.removeListener("window:maximize-changed", listener);
+    },
+    onTrayPlayerCommand: (cb) => {
+      const listener = (_event, value) => cb(value);
+      import_electron.ipcRenderer.on("tray:player-command", listener);
+      return () => import_electron.ipcRenderer.removeListener("tray:player-command", listener);
     }
   },
   // Dialog

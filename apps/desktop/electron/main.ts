@@ -21,6 +21,8 @@ let tray: Tray | null = null;
 let updaterReady = false;
 let isQuitting = false;
 
+type TrayPlayerCommand = 'toggle-play' | 'next-track' | 'previous-track';
+
 type UpdaterStatus =
   | 'idle'
   | 'checking'
@@ -230,9 +232,21 @@ function saveSettings(s: AppSettings) {
 
 function restoreMainWindow() {
   if (!mainWindow || mainWindow.isDestroyed()) return;
-  if (mainWindow.isMinimized()) mainWindow.restore();
+  mainWindow.setSkipTaskbar(false);
   if (!mainWindow.isVisible()) mainWindow.show();
+  if (mainWindow.isMinimized()) mainWindow.restore();
+  mainWindow.moveTop();
   mainWindow.focus();
+  setTimeout(() => {
+    if (!mainWindow || mainWindow.isDestroyed()) return;
+    if (!mainWindow.isVisible()) mainWindow.show();
+    mainWindow.focus();
+  }, 32);
+}
+
+function sendTrayPlayerCommand(command: TrayPlayerCommand) {
+  if (!mainWindow || mainWindow.isDestroyed()) return;
+  mainWindow.webContents.send('tray:player-command', command);
 }
 
 function createTray() {
@@ -242,14 +256,36 @@ function createTray() {
     join(__dirname, '../build/icon.png'),
     join(process.resourcesPath, 'build', 'icon.png'),
   ].find(candidate => existsSync(candidate));
-  const trayIcon = trayIconPath ? nativeImage.createFromPath(trayIconPath) : nativeImage.createEmpty();
+  const trayIconBase = trayIconPath ? nativeImage.createFromPath(trayIconPath) : nativeImage.createEmpty();
+  const trayIcon = trayIconBase.isEmpty()
+    ? trayIconBase
+    : trayIconBase.resize({
+        width: process.platform === 'win32' ? 20 : 22,
+        height: process.platform === 'win32' ? 20 : 22,
+        quality: 'best',
+      });
   tray = new Tray(trayIcon);
+  tray.setIgnoreDoubleClickEvents(true);
   tray.setToolTip('NOCTRA');
   tray.setContextMenu(Menu.buildFromTemplate([
     {
       label: 'Open NOCTRA',
       click: () => restoreMainWindow(),
     },
+    { type: 'separator' },
+    {
+      label: 'Play / Pause',
+      click: () => sendTrayPlayerCommand('toggle-play'),
+    },
+    {
+      label: 'Previous',
+      click: () => sendTrayPlayerCommand('previous-track'),
+    },
+    {
+      label: 'Next',
+      click: () => sendTrayPlayerCommand('next-track'),
+    },
+    { type: 'separator' },
     {
       label: 'Exit',
       click: () => {
@@ -262,13 +298,13 @@ function createTray() {
     },
   ]));
   tray.on('click', () => restoreMainWindow());
-  tray.on('double-click', () => restoreMainWindow());
   return tray;
 }
 
 function hideToTray() {
   if (!mainWindow || mainWindow.isDestroyed()) return;
   createTray();
+  mainWindow.setSkipTaskbar(true);
   mainWindow.hide();
 }
 

@@ -15,6 +15,11 @@ contextBridge.exposeInMainWorld('api', {
       ipcRenderer.on('window:maximize-changed', listener);
       return () => ipcRenderer.removeListener('window:maximize-changed', listener);
     },
+    onTrayPlayerCommand: (cb: (command: 'toggle-play' | 'next-track' | 'previous-track') => void) => {
+      const listener = (_event: unknown, value: 'toggle-play' | 'next-track' | 'previous-track') => cb(value);
+      ipcRenderer.on('tray:player-command', listener);
+      return () => ipcRenderer.removeListener('tray:player-command', listener);
+    },
   },
 
   // Dialog

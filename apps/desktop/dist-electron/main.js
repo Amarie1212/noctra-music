@@ -223,9 +223,20 @@ function saveSettings(s) {
 }
 function restoreMainWindow() {
   if (!mainWindow || mainWindow.isDestroyed()) return;
-  if (mainWindow.isMinimized()) mainWindow.restore();
+  mainWindow.setSkipTaskbar(false);
   if (!mainWindow.isVisible()) mainWindow.show();
+  if (mainWindow.isMinimized()) mainWindow.restore();
+  mainWindow.moveTop();
   mainWindow.focus();
+  setTimeout(() => {
+    if (!mainWindow || mainWindow.isDestroyed()) return;
+    if (!mainWindow.isVisible()) mainWindow.show();
+    mainWindow.focus();
+  }, 32);
+}
+function sendTrayPlayerCommand(command) {
+  if (!mainWindow || mainWindow.isDestroyed()) return;
+  mainWindow.webContents.send("tray:player-command", command);
 }
 function createTray() {
   if (tray) return tray;
@@ -234,14 +245,34 @@ function createTray() {
     (0, import_path.join)(__dirname, "../build/icon.png"),
     (0, import_path.join)(process.resourcesPath, "build", "icon.png")
   ].find((candidate) => (0, import_fs.existsSync)(candidate));
-  const trayIcon = trayIconPath ? import_electron.nativeImage.createFromPath(trayIconPath) : import_electron.nativeImage.createEmpty();
+  const trayIconBase = trayIconPath ? import_electron.nativeImage.createFromPath(trayIconPath) : import_electron.nativeImage.createEmpty();
+  const trayIcon = trayIconBase.isEmpty() ? trayIconBase : trayIconBase.resize({
+    width: process.platform === "win32" ? 20 : 22,
+    height: process.platform === "win32" ? 20 : 22,
+    quality: "best"
+  });
   tray = new import_electron.Tray(trayIcon);
+  tray.setIgnoreDoubleClickEvents(true);
   tray.setToolTip("NOCTRA");
   tray.setContextMenu(import_electron.Menu.buildFromTemplate([
     {
       label: "Open NOCTRA",
       click: () => restoreMainWindow()
     },
+    { type: "separator" },
+    {
+      label: "Play / Pause",
+      click: () => sendTrayPlayerCommand("toggle-play")
+    },
+    {
+      label: "Previous",
+      click: () => sendTrayPlayerCommand("previous-track")
+    },
+    {
+      label: "Next",
+      click: () => sendTrayPlayerCommand("next-track")
+    },
+    { type: "separator" },
     {
       label: "Exit",
       click: () => {
@@ -254,12 +285,12 @@ function createTray() {
     }
   ]));
   tray.on("click", () => restoreMainWindow());
-  tray.on("double-click", () => restoreMainWindow());
   return tray;
 }
 function hideToTray() {
   if (!mainWindow || mainWindow.isDestroyed()) return;
   createTray();
+  mainWindow.setSkipTaskbar(true);
   mainWindow.hide();
 }
 function consumeFirstRunState() {

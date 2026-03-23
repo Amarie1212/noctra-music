@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from 'react';
-import { useLibraryStore, usePlaylistStore, useSettingsStore } from './store';
+import { useLibraryStore, usePlayerStore, usePlaylistStore, useSettingsStore } from './store';
 import AudioEngine from './components/AudioEngine';
 import ToastContainer from './components/ToastContainer';
 import MainHeader from './components/MainHeader';
@@ -16,6 +16,9 @@ export default function App() {
   const loadPlaylists = usePlaylistStore(s => s.loadPlaylists);
   const playlistCount = usePlaylistStore(s => s.playlists.length);
   const loadSettings = useSettingsStore(s => s.loadSettings);
+  const togglePlay = usePlayerStore(s => s.togglePlay);
+  const skipNext = usePlayerStore(s => s.skipNext);
+  const skipPrev = usePlayerStore(s => s.skipPrev);
   const startupSawLoadingRef = useRef(false);
   const startupLoggedRef = useRef(false);
   const [isStartupReady, setIsStartupReady] = useState(false);
@@ -78,6 +81,23 @@ export default function App() {
     markPerfEnd('app-startup', meta);
     scheduleMemorySnapshot('app-startup-memory', meta);
   }, [isLibraryLoading, playlistCount, trackCount]);
+
+  useEffect(() => {
+    if (!window.api?.window?.onTrayPlayerCommand) return;
+    return window.api.window.onTrayPlayerCommand(command => {
+      if (command === 'toggle-play') {
+        togglePlay();
+        return;
+      }
+      if (command === 'next-track') {
+        skipNext();
+        return;
+      }
+      if (command === 'previous-track') {
+        skipPrev();
+      }
+    });
+  }, [skipNext, skipPrev, togglePlay]);
 
   return (
     <div className={`app-root${isAppVisible ? ' startup-app-visible' : ' startup-app-hidden'}${isDashboardIntroActive ? ' startup-dashboard-intro' : ''}`}>
