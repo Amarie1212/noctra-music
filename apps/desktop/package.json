@@ -1,6 +1,6 @@
 {
   "name": "desktop",
-  "version": "0.0.0-a2",
+  "version": "0.0.0-a3",
   "private": true,
   "main": "dist-electron/main.js",
   "build": {
@@ -41,7 +41,10 @@
     "build:renderer": "vite build",
     "build:bundle": "concurrently \"pnpm run build:electron\" \"pnpm run build:renderer\"",
     "build:installer": "pnpm run build:bundle && electron-builder --publish never",
-    "build": "pnpm run build:installer",
+    "build:local": "pnpm run build:bundle && electron-builder --publish never",
+    "build:publish": "pnpm run build:bundle && electron-builder --publish always",
+    "release:github": "pnpm run build:publish",
+    "build": "pnpm run build:local",
     "preview": "vite preview"
   },
   "dependencies": {
