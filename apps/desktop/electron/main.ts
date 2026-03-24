@@ -440,6 +440,8 @@ function createWindow() {
     if (settings.closeAction === 'tray') {
       event.preventDefault();
       hideToTray();
+    } else {
+      isQuitting = true;
     }
   });
   mainWindow.once('ready-to-show', () => {
@@ -479,7 +481,14 @@ app.whenReady().then(() => {
 });
 
 app.on('window-all-closed', () => {
-  if (process.platform !== 'darwin' && isQuitting) app.quit();
+  if (process.platform !== 'darwin') app.quit();
+});
+
+app.on('will-quit', () => {
+  if (tray) {
+    tray.destroy();
+    tray = null;
+  }
 });
 
 app.on('before-quit', () => {

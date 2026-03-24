@@ -389,6 +389,8 @@ function createWindow() {
     if (settings.closeAction === "tray") {
       event.preventDefault();
       hideToTray();
+    } else {
+      isQuitting = true;
     }
   });
   mainWindow.once("ready-to-show", () => {
@@ -422,7 +424,13 @@ import_electron.app.whenReady().then(() => {
   });
 });
 import_electron.app.on("window-all-closed", () => {
-  if (process.platform !== "darwin" && isQuitting) import_electron.app.quit();
+  if (process.platform !== "darwin") import_electron.app.quit();
+});
+import_electron.app.on("will-quit", () => {
+  if (tray) {
+    tray.destroy();
+    tray = null;
+  }
 });
 import_electron.app.on("before-quit", () => {
   isQuitting = true;
