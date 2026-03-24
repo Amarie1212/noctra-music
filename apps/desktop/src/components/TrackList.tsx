@@ -5,7 +5,7 @@ import { formatDuration } from '@music/core';
 import { createTranslator } from '../i18n';
 import { useLibraryStore, usePlayerStore, usePlaylistStore, useSettingsStore, useToastStore } from '../store';
 import { CustomSelect } from './CustomSelect';
-import { getTrackArtworkSrc } from '../artwork';
+
 
 interface Props {
   tracks: Track[];
@@ -530,7 +530,6 @@ export default function TrackList({
               }}
               showAlbum={showAlbum}
               showGenre={showGenre}
-              eagerArtwork={index < (shouldVirtualize ? 20 : 12)}
               t={t}
             />
           );
@@ -689,7 +688,6 @@ const TrackRow = memo(({
   onDragEnd,
   showAlbum,
   showGenre,
-  eagerArtwork,
   t
 }: {
   track: Track;
@@ -712,14 +710,12 @@ const TrackRow = memo(({
   onDragEnd: () => void;
   showAlbum?: boolean;
   showGenre?: boolean;
-  eagerArtwork: boolean;
   t: (key: string) => string;
 }) => {
   const details = [track.artist];
   if (showAlbum && track.album && track.album !== 'Unknown Album') details.push(track.album);
   if (showGenre && track.genre && track.genre !== 'Unknown') details.push(track.genre);
   const subtitle = details.filter(Boolean).join(' - ');
-  const artworkSrc = getTrackArtworkSrc(track);
 
   return (
     <div
@@ -758,20 +754,6 @@ const TrackRow = memo(({
       </div>
 
       <div className="track-info">
-        <div className="track-art">
-          {artworkSrc ? (
-            <img 
-              src={artworkSrc} 
-              alt="" 
-              loading={eagerArtwork ? 'eager' : 'auto'}
-              decoding="async" 
-              fetchPriority={eagerArtwork ? 'high' : 'auto'}
-              draggable={false} 
-            />
-          ) : (
-            'Art'
-          )}
-        </div>
         <div className="track-meta">
           <div className="track-title">{track.title}</div>
           <div className="track-artist">{subtitle}</div>
@@ -892,7 +874,6 @@ function SingleTrackPlaylistModal({
   );
   const selectedPlaylistTrackIds = playlistId ? playlistTrackIdSets.get(playlistId) : null;
   const alreadyInSelectedPlaylist = Boolean(selectedPlaylistTrackIds?.has(track.id));
-  const artworkSrc = getTrackArtworkSrc(track);
 
   const handleCreatePlaylist = async () => {
     const name = newPlaylistName.trim();
@@ -962,18 +943,6 @@ function SingleTrackPlaylistModal({
 
         <div className="playlist-modal-list single-preview">
           <div className="playlist-modal-track picker static-preview">
-            <div className="playlist-modal-track-art">
-              {artworkSrc ? (
-                <img
-                  src={artworkSrc}
-                  alt=""
-                  loading="lazy"
-                  decoding="async"
-                  fetchPriority="low"
-                  draggable={false}
-                />
-              ) : <span>Art</span>}
-            </div>
             <div className="playlist-modal-track-meta">
               <span>{track.title}</span>
               <small>{track.artist || t('unknownArtist')}</small>
@@ -1101,27 +1070,14 @@ function MultiTrackPlaylistModal({
         </div>
 
         <div className="playlist-modal-list">
-          {tracks.map(track => {
-            const artworkSrc = getTrackArtworkSrc(track);
-            return <button
+          {tracks.map(track => (
+            <button
               key={track.id}
               type="button"
               className={`playlist-modal-track picker ${selectedTrackIdSet.has(track.id) ? 'selected' : ''}`}
               onClick={() => toggleTrack(track.id)}
               aria-pressed={selectedTrackIdSet.has(track.id)}
             >
-              <div className="playlist-modal-track-art">
-                {artworkSrc ? (
-                  <img
-                    src={artworkSrc}
-                    alt=""
-                    loading="lazy"
-                    decoding="async"
-                    fetchPriority="low"
-                    draggable={false}
-                  />
-                ) : <span>Art</span>}
-              </div>
               <div className="playlist-modal-track-meta">
                 <span>{track.title}</span>
                 <small>{track.artist || t('unknownArtist')}</small>
@@ -1130,7 +1086,7 @@ function MultiTrackPlaylistModal({
                 {selectedTrackIdSet.has(track.id) ? '\u2713' : ''}
               </span>
             </button>
-          })}
+          ))}
         </div>
 
 

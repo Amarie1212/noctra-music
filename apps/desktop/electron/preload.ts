@@ -138,4 +138,10 @@ contextBridge.exposeInMainWorld('api', {
       return () => ipcRenderer.removeListener('updates:status', listener);
     },
   },
+
+  // Player sync for tray
+  player: {
+    syncState: (state: { title: string; artist: string; isPlaying: boolean }) =>
+      ipcRenderer.send('player:state-sync', state),
+  },
 });

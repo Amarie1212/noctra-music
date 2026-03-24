@@ -7,7 +7,6 @@ import TrackList from './TrackList';
 import ConfirmDialog from './ConfirmDialog';
 import { CustomSelect } from './CustomSelect';
 import { markPerfEnd, markPerfStart, scheduleMemorySnapshot } from '../perf';
-import { getPlaylistArtworkSrc, getTrackArtworkSrc } from '../artwork';
 
 type LibraryTab = 'songs' | 'artists' | 'albums' | 'folders' | 'playlists';
 type GroupType = 'artist' | 'album' | 'folder';
@@ -340,7 +339,6 @@ useEffect(() => {
     let result = playlists.map(playlist => ({
       playlist,
       tracks: playlist.trackIds.map(id => tracksMap.get(id)).filter(Boolean) as Track[],
-      artworkSrc: getPlaylistArtworkSrc(playlist, playlist.trackIds.length ? tracksMap.get(playlist.trackIds[0]) : undefined),
     }));
 
     if (normalizedSearch) {
@@ -903,9 +901,7 @@ useEffect(() => {
                 }}
               >
                 <div className="library-group-art">
-                  {libraryTab !== 'folders' && group.cover ? (
-                    <img src={group.cover} alt="" loading="lazy" decoding="async" fetchPriority="low" draggable={false} />
-                  ) : <LibraryPlaceholderIcon type={libraryTab === 'folders' ? 'folder' : 'song'} />}
+                  <LibraryPlaceholderIcon type={libraryTab === 'folders' ? 'folder' : libraryTab === 'albums' ? 'album' : libraryTab === 'artists' ? 'artist' : 'song'} />
                 </div>
                 <div className="library-group-copy">
                   <strong>{group.title}</strong>
@@ -951,7 +947,7 @@ useEffect(() => {
           <EmptyState text={t('noPlaylistYet')} />
         ) : (
           <div className={viewMode === 'grid' ? 'library-group-grid' : 'library-group-list'}>
-            {filteredPlaylists.map(({ playlist, tracks, artworkSrc }) => (
+            {filteredPlaylists.map(({ playlist, tracks }) => (
               <button
                 key={playlist.id}
                 type="button"
@@ -965,24 +961,13 @@ useEffect(() => {
                 }}
               >
                 <div className="library-group-art">
-                  {artworkSrc ? (
-                    <img
-                      src={artworkSrc}
-                      alt=""
-                      loading="lazy"
-                      decoding="async"
-                      fetchPriority="low"
-                      draggable={false}
-                    />
-                  ) : (
-                    <LibraryPlaceholderIcon type="playlist" />
-                  )}
+                  <LibraryPlaceholderIcon type="playlist" />
                 </div>
                 <div className="library-group-copy">
                   <strong>{playlist.name}</strong>
                   <span>{tracks.length} {t('songUnit')}</span>
                 </div>
-        </button>
+              </button>
             ))}
           </div>
         )}
@@ -993,8 +978,8 @@ useEffect(() => {
   return (
     <main className="library-pane">
       <nav className="library-tabs">
-        <div 
-          ref={tabsRef} 
+        <div
+          ref={tabsRef}
           className="tabs-scroll-container"
           onMouseDown={handleTabsMouseDown}
           onMouseMove={handleTabsMouseMove}
@@ -1412,9 +1397,8 @@ function PlaylistPickerModal({
         </div>
 
         <div className="playlist-modal-list">
-          {tracks.map(track => {
-            const artworkSrc = getTrackArtworkSrc(track);
-            return <button
+          {tracks.map(track => (
+            <button
               key={track.id}
               type="button"
               className={`playlist-modal-track picker ${selectedTrackIds.includes(track.id) ? 'selected' : ''}`}
@@ -1422,16 +1406,7 @@ function PlaylistPickerModal({
               aria-pressed={selectedTrackIds.includes(track.id)}
             >
               <div className="playlist-modal-track-art">
-                {artworkSrc ? (
-                  <img
-                    src={artworkSrc}
-                    alt=""
-                    loading="lazy"
-                    decoding="async"
-                    fetchPriority="low"
-                    draggable={false}
-                  />
-                ) : <LibraryPlaceholderIcon type="song" />}
+                <LibraryPlaceholderIcon type="song" />
               </div>
               <div className="playlist-modal-track-meta">
                 <span>{track.title}</span>
@@ -1441,10 +1416,8 @@ function PlaylistPickerModal({
                 {selectedTrackIds.includes(track.id) ? '\u2713' : ''}
               </span>
             </button>
-          })}
+          ))}
         </div>
-
-        {/* Modal actions removed as per request to move them to header */}
       </div>
     </div>
   );
@@ -1461,30 +1434,49 @@ function EmptyState({ text }: { text: string }) {
   );
 }
 
-function LibraryPlaceholderIcon({ type }: { type: 'folder' | 'song' | 'playlist' }) {
+function LibraryPlaceholderIcon({ type }: { type: 'folder' | 'song' | 'playlist' | 'artist' | 'album' }) {
   if (type === 'folder') {
     return (
-      <svg className="library-placeholder-icon" viewBox="0 0 64 64" fill="none" aria-hidden="true">
-        <path d="M10 20.5A6.5 6.5 0 0 1 16.5 14h12.2c2.1 0 4 .97 5.22 2.63l1.54 2.12c.47.65 1.22 1.03 2.02 1.03H47.5A6.5 6.5 0 0 1 54 26.3v19.2A8.5 8.5 0 0 1 45.5 54H18.5A8.5 8.5 0 0 1 10 45.5v-25Z" />
-        <path d="M10.5 25h43" />
+      <svg className="library-placeholder-icon folder" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+        <path d="M20 20a2 2 0 0 0 2-2V8a2 2 0 0 0-2-2h-7.9a2 2 0 0 1-1.69-.9L9.6 3.9A2 2 0 0 0 7.93 3H4a2 2 0 0 0-2 2v13a2 2 0 0 0 2 2Z" />
+      </svg>
+    );
+  }
+
+  if (type === 'artist') {
+    return (
+      <svg className="library-placeholder-icon artist" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+        <circle cx="12" cy="8" r="5" />
+        <path d="M20 21a8 8 0 1 0-16 0" />
+      </svg>
+    );
+  }
+
+  if (type === 'album') {
+    return (
+      <svg className="library-placeholder-icon album" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+        <circle cx="12" cy="12" r="10" />
+        <circle cx="12" cy="12" r="3" />
+        <path d="M12 12V2" />
       </svg>
     );
   }
 
   if (type === 'playlist') {
     return (
-      <svg className="library-placeholder-icon" viewBox="0 0 64 64" fill="none" aria-hidden="true">
-        <path d="M16 20h22" />
-        <path d="M16 30h22" />
-        <path d="M16 40h16" />
-        <path d="M44 18v22.5a5.5 5.5 0 1 1-3-4.92V21.5L52 19v17.5a5.5 5.5 0 1 1-3-4.92V16.66L44 18Z" />
+      <svg className="library-placeholder-icon playlist" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+        <path d="m3 11 18-5v12L3 23Z" />
+        <path d="M9 18V8.1L21 6v10.3" />
+        <circle cx="6" cy="18" r="3" />
       </svg>
     );
   }
 
   return (
-    <svg className="library-placeholder-icon" viewBox="0 0 64 64" fill="none" aria-hidden="true">
-      <path d="M42 17v22.5a6 6 0 1 1-3.25-5.33V20.08L52 17v18.5a6 6 0 1 1-3.25-5.33V13.09L42 17Z" />
+    <svg className="library-placeholder-icon song" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+      <path d="M9 18V5l12-2v13" />
+      <circle cx="6" cy="18" r="3" />
+      <circle cx="18" cy="16" r="3" />
     </svg>
   );
 }
@@ -1729,15 +1721,12 @@ function buildGroupsFast(tracks: Track[], type: GroupType, sort: LibrarySort, qu
 
   for (const track of tracks) {
     const key = getTrackGroupKey(track, type);
-    const current = groups.get(key);
-    if (current) current.push(track);
+    const existing = groups.get(key);
+    if (existing) existing.push(track);
     else groups.set(key, [track]);
   }
 
-  // Avoid sorting tracks inside each group. Detail view sorts tracks for display anyway.
   const rankedGroups = [...groups.entries()].map(([key, groupedTracks]) => {
-    const firstWithArt = groupedTracks.find(t => t.artworkData || t.artworkPath);
-    const cover = firstWithArt ? getTrackArtworkSrc(firstWithArt) : undefined;
     const firstTrack = pickRepresentativeTrackFast(groupedTracks);
     const folderPath = type === 'folder' ? getFolderPath(firstTrack.filePath) : undefined;
     const folderName = folderPath ? folderPath.split(/[\\/]/).pop() || folderPath : undefined;
@@ -1768,7 +1757,6 @@ function buildGroupsFast(tracks: Track[], type: GroupType, sort: LibrarySort, qu
       id: key,
       title: type === 'folder' ? (folderName || key) : key,
       subtitle: '',
-      cover,
       tracks: groupedTracks,
       folderPath,
       songCount: groupedTracks.length,

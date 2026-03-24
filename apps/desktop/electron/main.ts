@@ -18,6 +18,7 @@ protocol.registerSchemesAsPrivileged([
 // ─── Window & Tray ───────────────────────────────────────────────────────────
 let mainWindow: BrowserWindow | null = null;
 let tray: Tray | null = null;
+let trayMenuWindow: BrowserWindow | null = null;
 let updaterReady = false;
 let isQuitting = false;
 
@@ -249,12 +250,99 @@ function sendTrayPlayerCommand(command: TrayPlayerCommand) {
   mainWindow.webContents.send('tray:player-command', command);
 }
 
+function createTrayMenu() {
+  if (trayMenuWindow && !trayMenuWindow.isDestroyed()) {
+    trayMenuWindow.close();
+    trayMenuWindow = null;
+    return;
+  }
+
+  const MENU_W = 260;
+  const MENU_H = 180;
+
+  trayMenuWindow = new BrowserWindow({
+    width: MENU_W,
+    height: MENU_H,
+    frame: false,
+    transparent: true,
+    alwaysOnTop: true,
+    skipTaskbar: true,
+    resizable: false,
+    movable: false,
+    show: false,
+    webPreferences: {
+      nodeIntegration: true,
+      contextIsolation: false,
+    },
+  });
+
+  // Position relative to tray icon
+  let x: number, y: number;
+  const { screen } = require('electron');
+  
+  if (tray) {
+    const trayBounds = tray.getBounds();
+    const activeDisplay = screen.getDisplayMatching(trayBounds);
+    const { width: sw, height: sh, x: sx, y: sy } = activeDisplay.workArea;
+
+    // Center horizontally above the tray icon
+    x = Math.round(trayBounds.x + (trayBounds.width / 2) - (MENU_W / 2));
+    // Determine vertically (default bottom taskbar)
+    y = Math.round(trayBounds.y - MENU_H - 4);
+
+    // Safety checks for other taskbar positions
+    if (y < sy) {
+      // Taskbar is at the top
+      y = Math.round(trayBounds.y + trayBounds.height + 4);
+    }
+    
+    // Boundary checks
+    if (x + MENU_W > sw + sx) x = Math.round(sw + sx - MENU_W - 8);
+    if (x < sx) x = Math.round(sx + 8);
+    if (y + MENU_H > sh + sy) y = Math.round(sh + sy - MENU_H - 8);
+
+    trayMenuWindow.setPosition(x, y);
+  } else {
+    const primaryDisplay = screen.getPrimaryDisplay();
+    const { width: sw, height: sh, x: sx, y: sy } = primaryDisplay.workArea;
+    x = Math.round(sw + sx - MENU_W - 8);
+    y = Math.round(sh + sy - MENU_H - 8);
+    trayMenuWindow.setPosition(x, y);
+  }
+
+  const menuHtml = join(__dirname, 'tray-menu.html');
+  console.log('Loading tray menu from:', menuHtml);
+
+  trayMenuWindow.loadFile(menuHtml).catch(err => {
+    console.error('Failed to load tray menu HTML:', err);
+  });
+
+  trayMenuWindow.once('ready-to-show', () => {
+    if (!trayMenuWindow) return;
+    trayMenuWindow.show();
+    trayMenuWindow.focus();
+    // Ensure it's truly on top
+    trayMenuWindow.setAlwaysOnTop(true, 'screen-saver');
+  });
+  
+  // Show immediately if it's already rendered or as a fallback
+  trayMenuWindow.show();
+
+  trayMenuWindow.on('blur', () => {
+    if (trayMenuWindow && !trayMenuWindow.isDestroyed()) {
+      trayMenuWindow.close();
+      trayMenuWindow = null;
+    }
+  });
+  trayMenuWindow.on('closed', () => { trayMenuWindow = null; });
+}
+
 function createTray() {
   if (tray) return tray;
   const trayIconPath = [
+    join(process.resourcesPath, 'build', 'icon.png'),
     join(app.getAppPath(), 'build', 'icon.png'),
     join(__dirname, '../build/icon.png'),
-    join(process.resourcesPath, 'build', 'icon.png'),
   ].find(candidate => existsSync(candidate));
   const trayIconBase = trayIconPath ? nativeImage.createFromPath(trayIconPath) : nativeImage.createEmpty();
   const trayIcon = trayIconBase.isEmpty()
@@ -267,37 +355,8 @@ function createTray() {
   tray = new Tray(trayIcon);
   tray.setIgnoreDoubleClickEvents(true);
   tray.setToolTip('NOCTRA');
-  tray.setContextMenu(Menu.buildFromTemplate([
-    {
-      label: 'Open NOCTRA',
-      click: () => restoreMainWindow(),
-    },
-    { type: 'separator' },
-    {
-      label: 'Play / Pause',
-      click: () => sendTrayPlayerCommand('toggle-play'),
-    },
-    {
-      label: 'Previous',
-      click: () => sendTrayPlayerCommand('previous-track'),
-    },
-    {
-      label: 'Next',
-      click: () => sendTrayPlayerCommand('next-track'),
-    },
-    { type: 'separator' },
-    {
-      label: 'Exit',
-      click: () => {
-        isQuitting = true;
-        tray?.destroy();
-        tray = null;
-        mainWindow?.destroy();
-        app.quit();
-      },
-    },
-  ]));
-  tray.on('click', () => restoreMainWindow());
+  tray.on('click', () => createTrayMenu());
+  tray.on('right-click', () => createTrayMenu());
   return tray;
 }
 
@@ -434,6 +493,45 @@ ipcMain.on('window:maximize', () => {
   else mainWindow?.maximize();
 });
 ipcMain.on('window:close', () => mainWindow?.close());
+
+// ─── IPC: Tray Menu ───────────────────────────────────────────────────────────
+let lastPlayerState: { title: string; artist: string; isPlaying: boolean } | null = null;
+
+ipcMain.on('player:state-sync', (_event, state) => {
+  lastPlayerState = state;
+  if (trayMenuWindow && !trayMenuWindow.isDestroyed()) {
+    trayMenuWindow.webContents.send('tray:update-state', state);
+  }
+});
+
+ipcMain.on('tray-menu:open', () => {
+  if (trayMenuWindow && !trayMenuWindow.isDestroyed()) { trayMenuWindow.close(); trayMenuWindow = null; }
+  restoreMainWindow();
+});
+
+ipcMain.on('tray-menu:command', (_event, command: TrayPlayerCommand) => {
+  sendTrayPlayerCommand(command);
+});
+
+ipcMain.on('tray-menu:get-state', (event) => {
+  event.reply('tray:update-state', lastPlayerState);
+});
+
+ipcMain.on('tray-menu:close', () => {
+  if (trayMenuWindow && !trayMenuWindow.isDestroyed()) {
+    trayMenuWindow.close();
+    trayMenuWindow = null;
+  }
+});
+
+ipcMain.on('tray-menu:exit', () => {
+  isQuitting = true;
+  if (trayMenuWindow && !trayMenuWindow.isDestroyed()) { trayMenuWindow.destroy(); trayMenuWindow = null; }
+  tray?.destroy();
+  tray = null;
+  mainWindow?.destroy();
+  app.quit();
+});
 ipcMain.handle('window:isMaximized', () => mainWindow?.isMaximized() ?? false);
 ipcMain.handle('app:getVersion', () => app.getVersion());
 ipcMain.handle('app:consumeFirstRun', () => consumeFirstRunState());

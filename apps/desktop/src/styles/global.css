@@ -3565,13 +3565,22 @@ button,
 
 
 .library-placeholder-icon {
-  width: min(52%, 84px);
-  height: min(52%, 84px);
+  width: min(56%, 92px);
+  height: min(56%, 92px);
   stroke: currentColor;
-  stroke-width: 3;
+  stroke-width: 2.2;
   stroke-linecap: round;
   stroke-linejoin: round;
-  fill: color-mix(in srgb, var(--accent) 14%, transparent);
+  fill: none;
+}
+
+.library-group-art:has(.library-placeholder-icon.artist),
+.library-group-art:has(.library-placeholder-icon.album),
+.library-group-art:has(.library-placeholder-icon.folder),
+.library-group-art:has(.library-placeholder-icon.playlist),
+.library-group-art:has(.library-placeholder-icon.song) {
+  background: color-mix(in srgb, var(--accent) 12%, var(--surface-light));
+  color: var(--accent);
 }
 
 .empty-icon .library-placeholder-icon {

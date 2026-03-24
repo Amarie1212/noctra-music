@@ -197,6 +197,10 @@ const dictionaries: Record<Exclude<Language, 'system'>, Dictionary> = {
     folderType: 'Folder',
     playlistType: 'Playlist',
     removeFromPlaylist: 'Hapus dari Playlist',
+    trayNowPlaying: 'SEDANG DIPUTAR',
+    trayPaused: 'JEDA',
+    trayOpen: 'Buka',
+    trayExit: 'Keluar',
   },
   en: {
     scanFolder: 'Scan Folder',
@@ -391,6 +395,10 @@ const dictionaries: Record<Exclude<Language, 'system'>, Dictionary> = {
     folderType: 'Folder',
     playlistType: 'Playlist',
     removeFromPlaylist: 'Remove from Playlist',
+    trayNowPlaying: 'NOW PLAYING',
+    trayPaused: 'PAUSED',
+    trayOpen: 'Open',
+    trayExit: 'Exit',
   },
   ja: {
     scanFolder: 'フォルダをスキャン',
@@ -554,6 +562,10 @@ const dictionaries: Record<Exclude<Language, 'system'>, Dictionary> = {
     folderType: 'フォルダ',
     playlistType: 'プレイリスト',
     removeFromPlaylist: 'プレイリストから削除',
+    trayNowPlaying: '再生中',
+    trayPaused: '一時停止',
+    trayOpen: '開く',
+    trayExit: '終了',
   },
 };
 

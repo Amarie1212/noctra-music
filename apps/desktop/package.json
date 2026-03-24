@@ -31,7 +31,13 @@
       "deleteAppDataOnUninstall": true,
       "differentialPackage": false,
       "artifactName": "${productName}-Setup.${ext}"
-    }
+    },
+    "extraResources": [
+      {
+        "from": "build/icon.png",
+        "to": "build/icon.png"
+      }
+    ]
   },
   "scripts": {
     "clean:dist": "powershell -NoProfile -Command \"Remove-Item -Recurse -Force dist, dist-electron, dist-renderer -ErrorAction SilentlyContinue\"",

@@ -95,5 +95,9 @@ import_electron.contextBridge.exposeInMainWorld("api", {
       import_electron.ipcRenderer.on("updates:status", listener);
       return () => import_electron.ipcRenderer.removeListener("updates:status", listener);
     }
+  },
+  // Player sync for tray
+  player: {
+    syncState: (state) => import_electron.ipcRenderer.send("player:state-sync", state)
   }
 });

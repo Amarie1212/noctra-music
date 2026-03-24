@@ -62,6 +62,7 @@ import_electron.protocol.registerSchemesAsPrivileged([
 ]);
 var mainWindow = null;
 var tray = null;
+var trayMenuWindow = null;
 var updaterReady = false;
 var isQuitting = false;
 var updaterState = {
@@ -238,12 +239,79 @@ function sendTrayPlayerCommand(command) {
   if (!mainWindow || mainWindow.isDestroyed()) return;
   mainWindow.webContents.send("tray:player-command", command);
 }
+function createTrayMenu() {
+  if (trayMenuWindow && !trayMenuWindow.isDestroyed()) {
+    trayMenuWindow.close();
+    trayMenuWindow = null;
+    return;
+  }
+  const MENU_W = 260;
+  const MENU_H = 180;
+  trayMenuWindow = new import_electron.BrowserWindow({
+    width: MENU_W,
+    height: MENU_H,
+    frame: false,
+    transparent: true,
+    alwaysOnTop: true,
+    skipTaskbar: true,
+    resizable: false,
+    movable: false,
+    show: false,
+    webPreferences: {
+      nodeIntegration: true,
+      contextIsolation: false
+    }
+  });
+  let x, y;
+  const { screen } = require("electron");
+  if (tray) {
+    const trayBounds = tray.getBounds();
+    const activeDisplay = screen.getDisplayMatching(trayBounds);
+    const { width: sw, height: sh, x: sx, y: sy } = activeDisplay.workArea;
+    x = Math.round(trayBounds.x + trayBounds.width / 2 - MENU_W / 2);
+    y = Math.round(trayBounds.y - MENU_H - 4);
+    if (y < sy) {
+      y = Math.round(trayBounds.y + trayBounds.height + 4);
+    }
+    if (x + MENU_W > sw + sx) x = Math.round(sw + sx - MENU_W - 8);
+    if (x < sx) x = Math.round(sx + 8);
+    if (y + MENU_H > sh + sy) y = Math.round(sh + sy - MENU_H - 8);
+    trayMenuWindow.setPosition(x, y);
+  } else {
+    const primaryDisplay = screen.getPrimaryDisplay();
+    const { width: sw, height: sh, x: sx, y: sy } = primaryDisplay.workArea;
+    x = Math.round(sw + sx - MENU_W - 8);
+    y = Math.round(sh + sy - MENU_H - 8);
+    trayMenuWindow.setPosition(x, y);
+  }
+  const menuHtml = (0, import_path.join)(__dirname, "tray-menu.html");
+  console.log("Loading tray menu from:", menuHtml);
+  trayMenuWindow.loadFile(menuHtml).catch((err) => {
+    console.error("Failed to load tray menu HTML:", err);
+  });
+  trayMenuWindow.once("ready-to-show", () => {
+    if (!trayMenuWindow) return;
+    trayMenuWindow.show();
+    trayMenuWindow.focus();
+    trayMenuWindow.setAlwaysOnTop(true, "screen-saver");
+  });
+  trayMenuWindow.show();
+  trayMenuWindow.on("blur", () => {
+    if (trayMenuWindow && !trayMenuWindow.isDestroyed()) {
+      trayMenuWindow.close();
+      trayMenuWindow = null;
+    }
+  });
+  trayMenuWindow.on("closed", () => {
+    trayMenuWindow = null;
+  });
+}
 function createTray() {
   if (tray) return tray;
   const trayIconPath = [
+    (0, import_path.join)(process.resourcesPath, "build", "icon.png"),
     (0, import_path.join)(import_electron.app.getAppPath(), "build", "icon.png"),
-    (0, import_path.join)(__dirname, "../build/icon.png"),
-    (0, import_path.join)(process.resourcesPath, "build", "icon.png")
+    (0, import_path.join)(__dirname, "../build/icon.png")
   ].find((candidate) => (0, import_fs.existsSync)(candidate));
   const trayIconBase = trayIconPath ? import_electron.nativeImage.createFromPath(trayIconPath) : import_electron.nativeImage.createEmpty();
   const trayIcon = trayIconBase.isEmpty() ? trayIconBase : trayIconBase.resize({
@@ -254,37 +322,8 @@ function createTray() {
   tray = new import_electron.Tray(trayIcon);
   tray.setIgnoreDoubleClickEvents(true);
   tray.setToolTip("NOCTRA");
-  tray.setContextMenu(import_electron.Menu.buildFromTemplate([
-    {
-      label: "Open NOCTRA",
-      click: () => restoreMainWindow()
-    },
-    { type: "separator" },
-    {
-      label: "Play / Pause",
-      click: () => sendTrayPlayerCommand("toggle-play")
-    },
-    {
-      label: "Previous",
-      click: () => sendTrayPlayerCommand("previous-track")
-    },
-    {
-      label: "Next",
-      click: () => sendTrayPlayerCommand("next-track")
-    },
-    { type: "separator" },
-    {
-      label: "Exit",
-      click: () => {
-        isQuitting = true;
-        tray?.destroy();
-        tray = null;
-        mainWindow?.destroy();
-        import_electron.app.quit();
-      }
-    }
-  ]));
-  tray.on("click", () => restoreMainWindow());
+  tray.on("click", () => createTrayMenu());
+  tray.on("right-click", () => createTrayMenu());
   return tray;
 }
 function hideToTray() {
@@ -394,6 +433,43 @@ import_electron.ipcMain.on("window:maximize", () => {
   else mainWindow?.maximize();
 });
 import_electron.ipcMain.on("window:close", () => mainWindow?.close());
+var lastPlayerState = null;
+import_electron.ipcMain.on("player:state-sync", (_event, state) => {
+  lastPlayerState = state;
+  if (trayMenuWindow && !trayMenuWindow.isDestroyed()) {
+    trayMenuWindow.webContents.send("tray:update-state", state);
+  }
+});
+import_electron.ipcMain.on("tray-menu:open", () => {
+  if (trayMenuWindow && !trayMenuWindow.isDestroyed()) {
+    trayMenuWindow.close();
+    trayMenuWindow = null;
+  }
+  restoreMainWindow();
+});
+import_electron.ipcMain.on("tray-menu:command", (_event, command) => {
+  sendTrayPlayerCommand(command);
+});
+import_electron.ipcMain.on("tray-menu:get-state", (event) => {
+  event.reply("tray:update-state", lastPlayerState);
+});
+import_electron.ipcMain.on("tray-menu:close", () => {
+  if (trayMenuWindow && !trayMenuWindow.isDestroyed()) {
+    trayMenuWindow.close();
+    trayMenuWindow = null;
+  }
+});
+import_electron.ipcMain.on("tray-menu:exit", () => {
+  isQuitting = true;
+  if (trayMenuWindow && !trayMenuWindow.isDestroyed()) {
+    trayMenuWindow.destroy();
+    trayMenuWindow = null;
+  }
+  tray?.destroy();
+  tray = null;
+  mainWindow?.destroy();
+  import_electron.app.quit();
+});
 import_electron.ipcMain.handle("window:isMaximized", () => mainWindow?.isMaximized() ?? false);
 import_electron.ipcMain.handle("app:getVersion", () => import_electron.app.getVersion());
 import_electron.ipcMain.handle("app:consumeFirstRun", () => consumeFirstRunState());

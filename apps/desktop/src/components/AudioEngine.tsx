@@ -1,6 +1,7 @@
 import { useEffect, useRef } from 'react';
 import { usePlayerStore, useSettingsStore } from '../store';
 import { useLibraryStore } from '../store';
+import { createTranslator } from '../i18n';
 
 // Guard: track which <audio> elements have already been wired into an AudioContext.
 // This prevents the "HTMLMediaElement already connected to a different MediaSource"
@@ -33,6 +34,8 @@ export default function AudioEngine() {
 
   const tracks = useLibraryStore(s => s.tracks);
   const eq = useSettingsStore(s => s.settings.eq);
+  const theme = useSettingsStore(s => s.settings.theme);
+  const language = useSettingsStore(s => s.settings.language);
 
   // Register audio element with store
   useEffect(() => {
@@ -150,6 +153,37 @@ export default function AudioEngine() {
     if (isPlaying) audio.play().catch(() => {});
     else audio.pause();
   }, [isPlaying]);
+
+  // Sync state to Electron for Tray Menu
+  useEffect(() => {
+    const api = window.api as any;
+    if (!api?.player) return;
+    const track = tracks.find(t => t.id === currentTrackId);
+    
+    // Get computed theme values
+    const root = document.documentElement;
+    const accent = getComputedStyle(root).getPropertyValue('--accent').trim();
+    const surface = getComputedStyle(root).getPropertyValue('--surface-base').trim();
+    const border = getComputedStyle(root).getPropertyValue('--border').trim();
+    
+    // Get translations for tray
+    const t = createTranslator(language);
+    
+    api.player.syncState({
+      title: track?.title || '',
+      artist: track?.artist || '',
+      isPlaying: isPlaying,
+      accent: accent || '#a08cff',
+      surface: surface || 'rgba(15,15,18,0.85)',
+      border: border || 'rgba(255,255,255,0.12)',
+      labels: {
+        nowPlaying: t('trayNowPlaying'),
+        paused: t('trayPaused'),
+        open: t('trayOpen'),
+        exit: t('trayExit')
+      }
+    });
+  }, [currentTrackId, isPlaying, tracks, theme, language]);
 
   // Volume
   useEffect(() => {
