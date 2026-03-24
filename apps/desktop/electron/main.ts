@@ -495,7 +495,7 @@ ipcMain.on('window:maximize', () => {
 ipcMain.on('window:close', () => mainWindow?.close());
 
 // ─── IPC: Tray Menu ───────────────────────────────────────────────────────────
-let lastPlayerState: { title: string; artist: string; isPlaying: boolean } | null = null;
+let lastPlayerState: any = null;
 
 ipcMain.on('player:state-sync', (_event, state) => {
   lastPlayerState = state;
