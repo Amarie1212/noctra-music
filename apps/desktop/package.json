@@ -1,6 +1,6 @@
 {
   "name": "desktop",
-  "version": "0.0.0-a3",
+  "version": "0.0.0-a4",
   "private": true,
   "main": "dist-electron/main.js",
   "build": {
