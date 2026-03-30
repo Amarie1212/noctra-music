@@ -70,25 +70,15 @@ export default function NowPlayingPane() {
               </div>
             </>
           )}
-          <div className={`vinyl-record ${hasTrack && isPlaying ? 'spinning' : ''} ${(playerLayout === 'vinyl' || playerLayout === 'cassette') && hasTrack && !isPlaying ? 'paused' : ''}`}>
-            <div className={`vinyl-label-outer ${playerLayout === 'vinyl' && hasTrack ? 'spinning' : ''} ${playerLayout === 'vinyl' && hasTrack && !isPlaying ? 'paused' : ''}`}>
-              {artworkSrc ? (
-                <img
-                  src={artworkSrc}
-                  alt="art"
-                  className="vinyl-label-img"
-                  decoding="async"
-                  draggable={false}
-                />
-              ) : (
-                <span className="vinyl-label-icon" aria-hidden="true">
-                  <svg width="54" height="54" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
-                    <path d="M9 18V5l10-2v13"></path>
-                    <circle cx="6" cy="18" r="3"></circle>
-                    <circle cx="16" cy="16" r="3"></circle>
-                  </svg>
-                </span>
-              )}
+          <div className={`vinyl-record ${hasTrack ? 'spinning' : ''} ${hasTrack && !isPlaying ? 'paused' : ''}`}>
+            <div className={`vinyl-label-outer ${hasTrack ? 'spinning' : ''} ${hasTrack && !isPlaying ? 'paused' : ''}`}>
+              <span className="vinyl-label-icon" aria-hidden="true">
+                <svg width="64" height="64" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
+                  <circle cx="8" cy="9" r="2.5" />
+                  <circle cx="16" cy="7" r="2.5" />
+                  <path d="M8 9v6c0 1.5 2 2.5 4 2.5s4-1 4-2.5V7" />
+                </svg>
+              </span>
             </div>
           </div>
           <div className={`tonearm-visual ${hasTrack && isPlaying ? 'active' : ''}`}>
